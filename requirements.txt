@@ -1,0 +1,10 @@
+discord.py
+jishaku
+beautifulsoup4
+aiohttp
+python-dotenv
+feedparser
+pyyaml
+pymongo
+certifi
+openai
