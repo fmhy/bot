@@ -1,10 +1,16 @@
-# bot
+# fmhy/bot
 
-TODO: Write a description here
+This is our Discord bot made specifically for our server. It provides numerous utilities and other tools to help keep the server running like a well-oiled machine.
+
+Note: You **shouldn't** selfhost this, nor support will be provided. The source code here is provided for educational and development purposes.
 
 ## Usage
 
-TODO: Write usage instructions here
+1. You will need Python 3.10 or anything new, so install that, or use [rtx](https://github.com/jdxcode/rtx) which uses latest Python 3.12 on this repository.
+
+2. Install dependencies with `pip install -r requirements.txt`
+
+TODO: complete this
 
 ## Development
 
