@@ -1,5 +1,6 @@
 discord.py
 jishaku
+humanize
 beautifulsoup4
 aiohttp
 python-dotenv

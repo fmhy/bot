@@ -4,6 +4,13 @@ import discord
 from cogs._config import token, prefix, owners
 import os
 import aiohttp
+import time
+import traceback
+import logging
+import sys
+from core import formatter
+
+os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
 
 
 class HelpMenu(commands.MinimalHelpCommand):
@@ -31,15 +38,30 @@ class FMBY(commands.Bot):
         )
 
         self.session: aiohttp.ClientSession
+        formatter.install("discord", "INFO")
+        formatter.install("bot", "INFO")
+        self.logger = logging.getLogger("discord")
+        self.logger = logging.getLogger("wine")
 
     async def setup_hook(self):
         await self.load_extension("jishaku")
-        # await self.load_cogs()
+        await self.load_cogs()
 
     async def load_cogs(self):
+        s = time.perf_counter()
         for file in os.listdir("cogs/"):
             if file.endswith(".py") and not file.startswith("_"):
-                await bot.load_extension(f"cogs.{file[:-3]}")
+                extension = f"cogs.{file[:-3]}"
+                try:
+                    await self.load_extension(extension)
+                    self.logger.info(f"Loaded - {extension}")
+                except Exception as e:
+                    exception = f"{type(e).__name__}: {e}"
+                    self.logger.exception(f"Failed to load extension {extension}. - {exception}")
+                    traceback.print_exc()
+
+            elapsed = time.perf_counter() - s
+            self.logger.info(f"Loaded all extensions - took {elapsed:.2f}s")
 
     async def is_owner(self, user: discord.abc.User):
         if user.id in owners:
@@ -53,25 +75,16 @@ class FMBY(commands.Bot):
         print("Bot is ready!")
 
 
-bot = FMBY()
-
-
-@bot.event
-async def on_command_error(ctx: commands.Context, error):
-    if hasattr(ctx.command, "on_error"):
-        return
-    if isinstance(error, commands.CommandNotFound):
-        return
-    if isinstance(error, commands.CheckFailure):
-        return
-
-
-@bot.command(description="Shows the bot's latency")
-async def ping(ctx):
-    await ctx.send(f"🏓 {round(bot.latency*1000)}ms • started {bot.start_time}")
-
-
 if __name__ == "__main__":
-    # When running this file, if it is the 'main' file
-    # i.e. its not being imported from another python file run this
-    bot.run(token)
+    bot = FMBY()
+    try:
+        bot.run(token)
+    except Exception as e:
+        bot.logger.error(f"{type(e).__name__}: {e}")
+        traceback.print_exc()
+    except KeyboardInterrupt:
+        bot.logger.info("Shutting down...")
+        bot.loop.run_until_complete(bot.session.close())
+        bot.logger.info("Goodbye!")
+    finally:
+        sys.exit()

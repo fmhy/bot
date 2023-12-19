@@ -46,3 +46,6 @@ target/
 
 # dotenv
 .env*
+
+**/logs/**
+ai
