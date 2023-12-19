@@ -41,7 +41,7 @@ class FMBY(commands.Bot):
         formatter.install("discord", "INFO")
         formatter.install("bot", "INFO")
         self.logger = logging.getLogger("discord")
-        self.logger = logging.getLogger("wine")
+        self.logger = logging.getLogger("bot")
 
     async def setup_hook(self):
         await self.load_extension("jishaku")
@@ -60,8 +60,8 @@ class FMBY(commands.Bot):
                     self.logger.exception(f"Failed to load extension {extension}. - {exception}")
                     traceback.print_exc()
 
-            elapsed = time.perf_counter() - s
-            self.logger.info(f"Loaded all extensions - took {elapsed:.2f}s")
+        elapsed = time.perf_counter() - s
+        self.logger.info(f"Loaded all extensions - took {elapsed:.2f}s")
 
     async def is_owner(self, user: discord.abc.User):
         if user.id in owners:
@@ -78,7 +78,7 @@ class FMBY(commands.Bot):
 if __name__ == "__main__":
     bot = FMBY()
     try:
-        bot.run(token)
+        bot.run(token, log_handler=None)
     except Exception as e:
         bot.logger.error(f"{type(e).__name__}: {e}")
         traceback.print_exc()

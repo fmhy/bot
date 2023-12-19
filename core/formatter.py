@@ -1,5 +1,7 @@
 import logging
 import sys
+import logging.handlers
+from typing import Any
 
 
 class CustomFormatter(logging.Formatter):
@@ -29,7 +31,7 @@ class CustomFormatter(logging.Formatter):
         return formatter.format(record)
 
 
-def install(name: str, flavor: logging._Level) -> None:
+def install(name: str, flavor: Any) -> None:
     # core logger
     logger = logging.getLogger(name)
     logger.setLevel(flavor)
@@ -45,7 +47,12 @@ def install(name: str, flavor: logging._Level) -> None:
     logger.addHandler(handler)
 
     # file logging (optional)
-    file_handler = logging.FileHandler(f"logs/{name}.log")
+    file_handler = logging.handlers.RotatingFileHandler(
+        f"logs/{name}.log",
+        encoding="utf-8",
+        maxBytes=32 * 1024 * 1024,  # 32 MiB
+        backupCount=5,  # Rotate through 5 files
+    )
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(CustomFormatter())
     logger.addHandler(file_handler)
