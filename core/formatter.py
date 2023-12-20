@@ -1,6 +1,6 @@
 import logging
-import sys
 import logging.handlers
+import sys
 from typing import Any
 
 
@@ -47,12 +47,7 @@ def install(name: str, flavor: Any) -> None:
     logger.addHandler(handler)
 
     # file logging (optional)
-    file_handler = logging.handlers.RotatingFileHandler(
-        f"logs/{name}.log",
-        encoding="utf-8",
-        maxBytes=32 * 1024 * 1024,  # 32 MiB
-        backupCount=5,  # Rotate through 5 files
-    )
+    file_handler = logging.FileHandler(f"logs/{name}.log", encoding="utf-8")
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(CustomFormatter())
     logger.addHandler(file_handler)

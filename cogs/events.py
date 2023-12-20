@@ -1,11 +1,13 @@
-import discord
-from discord.ext import commands, tasks
-from cogs._config import url_regex, channel_ids, managing_roles
-from cogs._helpers import cembed
 import re
-import aiohttp
 import time
 from datetime import datetime
+
+import aiohttp
+import discord
+from discord.ext import commands, tasks
+
+from cogs._config import channel_ids, managing_roles, url_regex
+from cogs._helpers import cembed
 
 
 class EventHandling(commands.Cog):
@@ -30,8 +32,7 @@ class EventHandling(commands.Cog):
                 self.single_page = await response.text()
 
     async def cog_before_invoke(self, ctx):
-        """
-        Triggers typing indicator on Discord before every command.
+        """Triggers typing indicator on Discord before every command.
         """
         await ctx.trigger_typing()
         return
@@ -128,7 +129,7 @@ class EventHandling(commands.Cog):
                 if attachments:
                     img_added = False
                     for attachment in attachments:
-                        if img_added == False:
+                        if img_added is False:
                             if attachment.content_type in [
                                 "image/avif",
                                 "image/jpeg",

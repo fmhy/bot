@@ -1,6 +1,7 @@
 from discord.ext import commands, tasks
-from cogs._helpers import fetch_feed
+
 from cogs._config import rss_chan_ids
+from cogs._helpers import fetch_feed
 
 
 class RSSFeeds(commands.Cog):
@@ -14,8 +15,7 @@ class RSSFeeds(commands.Cog):
         self.send_rss.start()
 
     async def cog_before_invoke(self, ctx):
-        """
-        Triggers typing indicator on Discord before every command.
+        """Triggers typing indicator on Discord before every command.
         """
         await ctx.trigger_typing()
         return

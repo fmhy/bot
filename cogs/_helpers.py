@@ -1,9 +1,11 @@
-import discord
 from datetime import datetime
-from cogs._config import rss_feed_urls, db_uri
-import pymongo
+
 import certifi
+import discord
 import feedparser
+import pymongo
+
+from cogs._config import db_uri, rss_feed_urls
 
 ca = certifi.where()
 client = pymongo.MongoClient(db_uri, tlsCAFile=ca)

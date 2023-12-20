@@ -1,9 +1,11 @@
+import random
+import re
+
+import aiohttp
 import discord
 from discord.ext import commands
-import re
-import random
+
 from cogs._config import url_regex
-import aiohttp
 from cogs._search_help import execute
 
 
@@ -22,9 +24,7 @@ class WikiCommands(commands.Cog):
         )
 
     async def cog_before_invoke(self, ctx):
-        """
-        Triggers typing indicator on Discord before every command.
-        """
+        """Triggers typing indicator on Discord before every command."""
         await ctx.trigger_typing()
         return
 
@@ -39,8 +39,9 @@ class WikiCommands(commands.Cog):
             url_num = 25
         list_urls = await self.get_urls_from_rentry()
         random_urls = random.sample(list_urls, url_num)
+        title = f"Here are {url_num} random URL{'s' if url_num > 1 else ''} from the list of lists:"
         list_embed = discord.Embed(
-            title=f"Here are {url_num} random URL{'s' if url_num > 1 else ''} from the list of lists:",
+            title=title,
             color=0x2B2D31,
         )
         list_embed.set_footer(text="Source: https://rentry.co/oghty")
@@ -50,8 +51,8 @@ class WikiCommands(commands.Cog):
 
     @commands.slash_command(name="search", description="Search for query in the wiki")
     async def searchwiki(self, ctx: discord.ApplicationContext, query: str):
-        l = await execute(query)
-        results = l[0]
+        search = await execute(query)
+        results = search[0]
         list_embed = discord.Embed(title=f"Search Results for {query}", color=0x2B2D31)
         list_embed.description = "\n\n".join(results)
         await ctx.respond(embed=list_embed, ephemeral=True)

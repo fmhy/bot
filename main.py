@@ -1,13 +1,15 @@
 import datetime
-from discord.ext import commands
-import discord
-from cogs._config import token, prefix, owners
+import logging
 import os
-import aiohttp
+import sys
 import time
 import traceback
-import logging
-import sys
+
+import aiohttp
+import discord
+from discord.ext import commands
+
+from cogs._config import owners, prefix, token
 from core import formatter
 
 os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
@@ -72,7 +74,7 @@ class FMBY(commands.Bot):
     async def on_ready(self) -> None:
         self.session = aiohttp.ClientSession(loop=self.loop)
         await self.change_presence(activity=discord.Game(name="Free Media Heck Yeah"))
-        print("Bot is ready!")
+        self.logger.info("Bot is ready!")
 
 
 if __name__ == "__main__":
