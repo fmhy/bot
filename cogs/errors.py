@@ -3,11 +3,13 @@ import traceback
 import humanize
 from discord.ext import commands
 
+from main import Bot
+
 
 class Errors(commands.Cog):
     """Error handler for commands."""
 
-    def __init__(self, bot) -> None:
+    def __init__(self, bot: Bot) -> None:
         self.bot = bot
 
     async def on_command_error(self, ctx: commands.Context, e: Exception):
@@ -44,5 +46,5 @@ class Errors(commands.Cog):
             traceback.print_exc()
 
 
-async def setup(bot):
+async def setup(bot: Bot):
     await bot.add_cog(Errors(bot))

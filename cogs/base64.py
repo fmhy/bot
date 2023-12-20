@@ -2,17 +2,18 @@ import discord
 from discord.ext import commands
 
 import cogs._helpers as hp
+from main import Bot
 
 
 class Base64(commands.Cog):
     """Base64 commands"""
 
-    def __init__(self, bot):
-        self.bot: commands.Bot = bot
+    def __init__(self, bot: Bot):
+        self.bot = bot
 
     async def cog_before_invoke(self, ctx):
         """Triggers typing indicator on Discord before every command."""
-        await ctx.trigger_typing()
+        await ctx.channel.typing()
         return
 
     @commands.Cog.listener()
@@ -160,5 +161,5 @@ class Base64(commands.Cog):
         await ctx.interaction.response.send_message(str(hp.b64decode(enocded_text)), ephemeral=True)
 
 
-def setup(bot):
-    bot.add_cog(Base64(bot))
+async def setup(bot: Bot):
+    await bot.add_cog(Base64(bot))

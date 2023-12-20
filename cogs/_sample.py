@@ -10,8 +10,7 @@ class General(commands.Cog):
         self.bot = bot
 
     async def cog_before_invoke(self, ctx):
-        """Triggers typing indicator on Discord before every command
-        """
+        """Triggers typing indicator on Discord before every command"""
         await ctx.trigger_typing()
         return
 

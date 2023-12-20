@@ -1,31 +1,30 @@
 import random
 import re
 
-import aiohttp
 import discord
 from discord.ext import commands
 
 from cogs._config import url_regex
 from cogs._search_help import execute
+from main import Bot
 
 
 class WikiCommands(commands.Cog):
     """WikiCommands commands"""
 
-    def __init__(self, bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
 
     async def get_urls_from_rentry(self):
-        async with aiohttp.ClientSession() as session:
-            async with session.get("https://rentry.co/oghty/raw") as response:
-                urls = await response.text()
+        async with self.bot.session.get("https://rentry.co/oghty/raw") as response:
+            urls = await response.text()
         return list(
             set([f"{protocol}://{domain}" for protocol, domain in re.findall(url_regex, urls)])
         )
 
     async def cog_before_invoke(self, ctx):
         """Triggers typing indicator on Discord before every command."""
-        await ctx.trigger_typing()
+        await ctx.channel.typing()
         return
 
     @commands.slash_command(
@@ -58,5 +57,5 @@ class WikiCommands(commands.Cog):
         await ctx.respond(embed=list_embed, ephemeral=True)
 
 
-def setup(bot):
-    bot.add_cog(WikiCommands(bot))
+async def setup(bot: Bot):
+    await bot.add_cog(WikiCommands(bot))

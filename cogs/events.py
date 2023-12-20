@@ -2,18 +2,18 @@ import re
 import time
 from datetime import datetime
 
-import aiohttp
 import discord
 from discord.ext import commands, tasks
 
 from cogs._config import channel_ids, managing_roles, url_regex
 from cogs._helpers import cembed
+from main import Bot
 
 
 class EventHandling(commands.Cog):
     """EventHandling commands"""
 
-    def __init__(self, bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
 
         self.bookmark_emoji = discord.PartialEmoji(name="🔖")
@@ -25,16 +25,14 @@ class EventHandling(commands.Cog):
 
     @tasks.loop(minutes=5)
     async def update_single_page(self):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                "https://raw.githubusercontent.com/fmhy/FMHYedit/main/single-page"
-            ) as response:
-                self.single_page = await response.text()
+        async with self.bot.session.get(
+            "https://raw.githubusercontent.com/fmhy/FMHYedit/main/single-page"
+        ) as response:
+            self.single_page = await response.text()
 
     async def cog_before_invoke(self, ctx):
-        """Triggers typing indicator on Discord before every command.
-        """
-        await ctx.trigger_typing()
+        """Triggers typing indicator on Discord before every command."""
+        await ctx.channel.typing()
         return
 
     async def get_duplicate_non_duplicate_links(self, message_links):
@@ -175,5 +173,5 @@ class EventHandling(commands.Cog):
                 await msg.delete()
 
 
-def setup(bot):
-    bot.add_cog(EventHandling(bot))
+async def setup(bot: Bot):
+    await bot.add_cog(EventHandling(bot))
