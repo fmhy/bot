@@ -4,17 +4,13 @@ import os
 import sys
 import time
 import traceback
-from typing import TYPE_CHECKING
 
 import aiohttp
 import discord
 from discord.ext import commands
 
-from cogs._config import owners, prefix, token
+from cogs._config import OWNERS, TOKEN, prefix
 from core import formatter, help
-
-if TYPE_CHECKING:
-    token = str(token)  # so pyright won't complain of None
 
 os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
 
@@ -58,7 +54,7 @@ class Bot(commands.Bot):
         self.logger.info(f"Loaded all extensions - took {elapsed:.2f}s")
 
     async def is_owner(self, user: discord.abc.User):
-        if user.id in owners:
+        if user.id in OWNERS:
             return True
         # Else fall back to the original
         return await super().is_owner(user)
@@ -72,7 +68,7 @@ class Bot(commands.Bot):
 if __name__ == "__main__":
     bot = Bot()
     try:
-        bot.run(token, log_handler=None)
+        bot.run(TOKEN, log_handler=None)
     except Exception as e:
         bot.logger.error(f"{type(e).__name__}: {e}")
         traceback.print_exc()

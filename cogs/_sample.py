@@ -1,6 +1,6 @@
 from discord.ext import commands
 
-from main import FMBY
+from main import Bot
 
 
 class General(commands.Cog):
@@ -11,7 +11,7 @@ class General(commands.Cog):
 
     async def cog_before_invoke(self, ctx):
         """Triggers typing indicator on Discord before every command"""
-        await ctx.trigger_typing()
+        await ctx.channel.typing()
         return
 
     @commands.command()
@@ -19,5 +19,5 @@ class General(commands.Cog):
         ...
 
 
-def setup(bot: FMBY):
-    bot.add_cog(General(bot))
+async def setup(bot: Bot):
+    await bot.add_cog(General(bot))

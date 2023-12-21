@@ -5,10 +5,10 @@ import discord
 import feedparser
 import pymongo
 
-from cogs._config import db_uri, rss_feed_urls
+from cogs._config import DB, rss_feed_urls
 
 ca = certifi.where()
-client = pymongo.MongoClient(db_uri, tlsCAFile=ca)
+client = pymongo.MongoClient(DB, tlsCAFile=ca)
 import base64
 
 mydb = client["fmby"]
