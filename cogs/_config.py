@@ -50,6 +50,10 @@ channel_ids = [
     1099381748011380909,  # unknown??
 ]
 
+# Automatic thread creation
+auto_thread_channels = [1190380815700467795]
+auto_thread_roles = [1190380868284457091] #To trigger thread creation
+
 managing_roles = [956006107564879880, 956006107577454603]
 
 rss_chan_ids = [int(i) for i in RSS_CHANNELS.split(",")]
