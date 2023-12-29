@@ -49,3 +49,8 @@ target/
 
 **/logs/**
 ai
+
+#venv
+bin
+lib64
+pyvenv.cfg
