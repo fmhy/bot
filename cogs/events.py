@@ -71,8 +71,7 @@ class EventHandling(commands.Cog):
         ):
             await message.create_thread(
                 name="Auto-Thread - Please keep discussions in here!",
-                reason="Auto thread created by FMHY Bot",
-                auto_archive_duration=60)
+                reason="Auto thread created by FMHY Bot")
 
         if message.author.bot:
             return
