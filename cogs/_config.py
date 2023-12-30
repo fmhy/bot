@@ -55,7 +55,7 @@ auto_thread_channels = [
     976770662205104150 # free-stuff channel
 ]
 auto_thread_roles = [
-    1190380868284457091 # free-stuff notif role
+    956006107564879873 # free-stuff notif role
 ]
 managing_roles = [956006107564879880, 956006107577454603]
 
