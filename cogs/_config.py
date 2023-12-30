@@ -51,9 +51,12 @@ channel_ids = [
 ]
 
 # Automatic thread creation
-auto_thread_channels = [1190380815700467795]
-auto_thread_roles = [1190380868284457091]  # To trigger thread creation
-
+auto_thread_channels = [
+    976770662205104150 # free-stuff channel
+]
+auto_thread_roles = [
+    1190380868284457091 # free-stuff notif role
+]
 managing_roles = [956006107564879880, 956006107577454603]
 
 rss_chan_ids = [int(i) for i in RSS_CHANNELS.split(",")]
