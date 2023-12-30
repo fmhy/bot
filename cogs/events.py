@@ -5,7 +5,7 @@ from datetime import datetime
 import discord
 from discord.ext import commands, tasks
 
-from cogs._config import channel_ids, managing_roles, url_regex
+from cogs._config import channel_ids, managing_roles, url_regex, auto_thread_channels, auto_thread_roles
 from cogs._helpers import cembed
 from main import Bot
 
@@ -66,6 +66,13 @@ class EventHandling(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+        if message.channel.id in auto_thread_channels and any(
+            str(role) in message.content for role in auto_thread_roles
+        ):
+            await message.create_thread(
+                name="Auto-Thread - Please keep discussions in here!",
+                reason="Auto thread created by FMHY Bot")
+
         if message.author.bot:
             return
         if message.channel.id in channel_ids:
@@ -91,7 +98,8 @@ class EventHandling(commands.Cog):
                 # Partial duplicates
                 elif len(message_links) > 1 and len(duplicate_links) >= 1:
                     non_duplicate_links_string = "\n".join(
-                        [f"{protocol}://{link}" for protocol, link in non_duplicate_links]
+                        [f"{protocol}://{link}" for protocol,
+                            link in non_duplicate_links]
                     )
                     non_duplicate_links_embed = cembed(
                         title="__Non-Duplicate Links:__",
@@ -119,10 +127,13 @@ class EventHandling(commands.Cog):
             if emoji == self.bookmark_emoji:
                 attachments = msg.attachments
                 embed = discord.Embed(color=0x2B2D31, timestamp=datetime.now())
-                embed.set_author(name=msg.author.name, icon_url=msg.author.display_avatar)
+                embed.set_author(name=msg.author.name,
+                                 icon_url=msg.author.display_avatar)
                 embed.description = msg.content[:4096]
-                embed.add_field(name="Jump", value=f"[Go to Message!]({msg.jump_url})")
-                embed.set_footer(text=f"Guild: {channel.guild.name} | Channel: #{channel.name}")
+                embed.add_field(
+                    name="Jump", value=f"[Go to Message!]({msg.jump_url})")
+                embed.set_footer(
+                    text=f"Guild: {channel.guild.name} | Channel: #{channel.name}")
                 attach = ""
                 if attachments:
                     img_added = False

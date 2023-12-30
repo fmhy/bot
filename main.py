@@ -47,7 +47,8 @@ class Bot(commands.Bot):
                     self.logger.info(f"Loaded - {extension}")
                 except Exception as e:
                     exception = f"{type(e).__name__}: {e}"
-                    self.logger.exception(f"Failed to load extension {extension}. - {exception}")
+                    self.logger.exception(
+                        f"Failed to load extension {extension}. - {exception}")
                     traceback.print_exc()
 
         elapsed = time.perf_counter() - s
