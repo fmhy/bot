@@ -1,7 +1,9 @@
 [tool.ruff]
 target-version = "py312"
 line-length = 100
+required-version = "0.2.1"
 
+[tool.ruff.lint]
 ignore = [
   # (missing public docstrings) These work off of the Python sense of "public", rather than our
   # bespoke definition based off of `@public`. When ruff supports custom plugins then we can write
@@ -22,6 +24,10 @@ ignore = [
   # warnings.filterwarings calls before imports.
   "E402",
 
+  # (line too long): This fires for comments, which the ruff formatter won't auto-wrap. Disabling
+  # until there is an autoformat solution available for comments.
+  "E501",
+
   # (no type comparison): There are a few places where we use `== type(None)` which are more clear
   # than the equivalent `isinstance` check.
   'E721',
@@ -40,6 +46,10 @@ ignore = [
   # (no concatenation) Existing codebase has many concatentations, no reason to disallow them.
   "RUF005",
 
+  # (use ClassVar for attr declarations with defaults) This is a good rule for vanilla Python, but
+  # triggers false positives for many libs that have DSLs that make use of attr defaults.
+  "RUF012",
+
   # (assorted perf rules) We have a lot of violations, enable when autofix is available
   "PERF401", # (manual-list-comprehension)
   "PERF402", # (manual-list-copy)
@@ -55,6 +65,13 @@ select = [
 
   # (useless expression): Expressions that aren't assigned to anything are typically bugs.
   "B018",
+
+  # (static key dict comprehension): Flag reuse of a key in dict comprehensions.
+  "B035",
+
+  # (pydocstyle) Docstring-related rules. A large subset of these are ignored by the
+  # "convention=google" setting, we set under tool.ruff.pydocstyle.
+  "D",
 
   # (pycodestyle) pycodestyle rules
   "E",
@@ -101,7 +118,8 @@ select = [
   "W605",
 ]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
+
 # Combine multiple `from foo import bar as baz` statements with the same source
 # (`foo`) into a single statement.
 combine-as-imports = true
@@ -109,3 +127,10 @@ combine-as-imports = true
 # Imports of the form `from foo import bar as baz` show one `import bar as baz`
 # per line. Useful for __init__.py files that just re-export symbols.
 force-wrap-aliases = true
+
+[tool.ruff.lint.pydocstyle]
+
+# Enforce google-style docstrings. This is equivalent to ignoring a large number of pydocstyle (D)
+# rules incompatible with google-style docstrings. See:
+# https://google.github.io/styleguide/pyguide.html#383-functions-and-methods
+convention = "google"

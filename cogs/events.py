@@ -5,7 +5,13 @@ from datetime import datetime
 import discord
 from discord.ext import commands, tasks
 
-from cogs._config import channel_ids, disallowed_channel_ids, managing_roles, url_regex, auto_thread_mappings
+from cogs._config import (
+    auto_thread_mappings,
+    channel_ids,
+    disallowed_channel_ids,
+    managing_roles,
+    url_regex,
+)
 from cogs._helpers import cembed
 from main import Bot
 
@@ -30,7 +36,7 @@ class EventHandling(commands.Cog):
             "https://raw.githubusercontent.com/fmhy/FMHYedit/main/single-page"
         ) as response:
             self.single_page = await response.text()
-            self.bot.logger.info(f"Updated single page cache")
+            self.bot.logger.info("Updated single page cache")
 
     @tasks.loop(minutes=15)
     async def update_disallowed_links(self):
@@ -53,10 +59,15 @@ class EventHandling(commands.Cog):
         last_fetched_message_id = self.last_fetched_messages.get(channel_id, None)
 
         messages = []
-        async for msg in channel.history(limit=None, after=(discord.Object(last_fetched_message_id) if last_fetched_message_id else None)):
+        async for msg in channel.history(
+            limit=None,
+            after=(discord.Object(last_fetched_message_id) if last_fetched_message_id else None),
+        ):
             messages.append(msg)
 
-        self.last_fetched_messages[channel_id] = messages[-1].id if messages else last_fetched_message_id
+        self.last_fetched_messages[channel_id] = (
+            messages[-1].id if messages else last_fetched_message_id
+        )
 
         return messages
 
@@ -89,11 +100,13 @@ class EventHandling(commands.Cog):
     async def on_message(self, message: discord.Message):
         chan_id = str(message.channel.id)
         if chan_id in auto_thread_mappings and (
-            auto_thread_mappings[chan_id] is None or auto_thread_mappings[chan_id] in message.content
+            auto_thread_mappings[chan_id] is None
+            or auto_thread_mappings[chan_id] in message.content
         ):
             await message.create_thread(
                 name="Auto-Thread - Please keep discussions in here!",
-                reason="Auto thread created by FMHY Bot")
+                reason="Auto thread created by FMHY Bot",
+            )
 
         if message.author.bot:
             return
@@ -120,8 +133,7 @@ class EventHandling(commands.Cog):
                 # Partial duplicates
                 elif len(message_links) > 1 and len(duplicate_links) >= 1:
                     non_duplicate_links_string = "\n".join(
-                        [f"{protocol}://{link}" for protocol,
-                            link in non_duplicate_links]
+                        [f"{protocol}://{link}" for protocol, link in non_duplicate_links]
                     )
                     non_duplicate_links_embed = cembed(
                         title="__Non-Duplicate Links:__",
@@ -139,7 +151,9 @@ class EventHandling(commands.Cog):
                 # Check if any link is in disallowed channels
                 # TODO: Add backreference to message containing link
                 if any(link in self.all_disallowed_messages for link in message_links):
-                    reply_message = await message.reply("**:warning: Warning: This link has been previously removed! Please check before submitting again. :warning:**")
+                    reply_message = await message.reply(
+                        "**:warning: Warning: This link has been previously removed! Please check before submitting again. :warning:**"
+                    )
                     await reply_message.add_reaction("❌")
                     return
 
@@ -156,13 +170,10 @@ class EventHandling(commands.Cog):
             if emoji == self.bookmark_emoji:
                 attachments = msg.attachments
                 embed = discord.Embed(color=0x2B2D31, timestamp=datetime.now())
-                embed.set_author(name=msg.author.name,
-                                 icon_url=msg.author.display_avatar)
+                embed.set_author(name=msg.author.name, icon_url=msg.author.display_avatar)
                 embed.description = msg.content[:4096]
-                embed.add_field(
-                    name="Jump", value=f"[Go to Message!]({msg.jump_url})")
-                embed.set_footer(
-                    text=f"Guild: {channel.guild.name} | Channel: #{channel.name}")
+                embed.add_field(name="Jump", value=f"[Go to Message!]({msg.jump_url})")
+                embed.set_footer(text=f"Guild: {channel.guild.name} | Channel: #{channel.name}")
                 attach = ""
                 if attachments:
                     img_added = False

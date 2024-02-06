@@ -57,8 +57,8 @@ disallowed_channel_ids = [
 
 # Automatic thread creation
 auto_thread_mappings = {
-    "976770662205104150": "956006107564879873", # free-stuff channel
-    "1089999083856470016": None, # secret-guides channel
+    "976770662205104150": "956006107564879873",  # free-stuff channel
+    "1089999083856470016": None,  # secret-guides channel
 }
 
 managing_roles = [956006107564879880, 956006107577454603]

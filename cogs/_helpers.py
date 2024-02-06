@@ -9,7 +9,7 @@ from pymongo.server_api import ServerApi
 from cogs._config import DB, rss_feed_urls
 
 ca = certifi.where()
-client = MongoClient(DB, server_api=ServerApi('1'))
+client = MongoClient(DB, server_api=ServerApi("1"))
 import base64
 
 mydb = client["fmby"]
