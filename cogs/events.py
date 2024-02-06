@@ -5,7 +5,7 @@ from datetime import datetime
 import discord
 from discord.ext import commands, tasks
 
-from cogs._config import channel_ids, managing_roles, url_regex, auto_thread_mappings
+from cogs._config import channel_ids, disallowed_channel_ids, managing_roles, url_regex, auto_thread_mappings
 from cogs._helpers import cembed
 from main import Bot
 
@@ -20,8 +20,9 @@ class EventHandling(commands.Cog):
         self.del_emoji = discord.PartialEmoji(name="❌")
         self.last_single_page_update = 0
         self.single_page = ""
-        self.dead_sites_messages = set()
-        self.deleted_sites_messages = set()
+
+        self.all_disallowed_messages = []
+        self.last_fetched_messages = {}
 
     @tasks.loop(minutes=5)
     async def update_single_page(self):
@@ -31,6 +32,33 @@ class EventHandling(commands.Cog):
             self.single_page = await response.text()
             self.bot.logger.info(f"Updated single page cache")
 
+    @tasks.loop(minutes=15)
+    async def update_disallowed_links(self):
+        for channel_id in disallowed_channel_ids:
+            channel = self.bot.get_channel(channel_id)
+            if channel:
+                messages = await self.fetch_new_messages(channel_id)
+                self.bot.logger.info(f"Grabbing latest disallowed links from {channel_id}")
+                for message in messages:
+                    msg_links = set(
+                        re.findall(
+                            url_regex,
+                            message.content,
+                        )
+                    )
+                    self.all_disallowed_messages.extend(msg_links)
+
+    async def fetch_new_messages(self, channel_id):
+        channel = self.bot.get_channel(channel_id)
+        last_fetched_message_id = self.last_fetched_messages.get(channel_id, None)
+
+        messages = []
+        async for msg in channel.history(limit=None, after=(discord.Object(last_fetched_message_id) if last_fetched_message_id else None)):
+            messages.append(msg)
+
+        self.last_fetched_messages[channel_id] = messages[-1].id if messages else last_fetched_message_id
+
+        return messages
 
     async def cog_before_invoke(self, ctx):
         """Triggers typing indicator on Discord before every command."""
@@ -55,16 +83,7 @@ class EventHandling(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         self.update_single_page.start()
-
-        dead_sites_channel = self.bot.get_channel(988133247575810059)
-        if dead_sites_channel:
-            self.dead_sites_messages = set(await dead_sites_channel.history(limit=None).flatten())
-
-        deleted_sites_channel = self.bot.get_channel(986617857133649921)
-        if deleted_sites_channel:
-            self.deleted_sites_messages = set(
-                await deleted_sites_channel.history(limit=None).flatten()
-            )
+        self.update_disallowed_links.start()
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -114,6 +133,13 @@ class EventHandling(commands.Cog):
                     )
 
                     reply_message = await message.reply(embed=non_duplicate_links_embed)
+                    await reply_message.add_reaction("❌")
+                    return
+
+                # Check if any link is in disallowed channels
+                # TODO: Add backreference to message containing link
+                if any(link in self.all_disallowed_messages for link in message_links):
+                    reply_message = await message.reply("**:warning: Warning: This link has been previously removed! Please check before submitting again. :warning:**")
                     await reply_message.add_reaction("❌")
                     return
 

@@ -14,7 +14,7 @@ GUILD_ID = os.getenv("GUILD_ID", None)
 OWNERS = os.getenv("OWNERS").split(",")
 RSS_CHANNELS = os.getenv("RSS_CHANNEL_IDS", None)
 FEEDS = os.getenv("RSS_FEED_URLS", None)
-DB = os.getenv("db_uri")
+DB = os.getenv("DB_URI")
 
 if not TOKEN:
     message = "Couldn't find the `TOKEN` environment variable."
@@ -50,13 +50,17 @@ channel_ids = [
     1099381748011380909,  # unknown??
 ]
 
+disallowed_channel_ids = [
+    988133247575810059,  # dead-sites
+    986617857133649921,  # bad-sites
+]
+
 # Automatic thread creation
-auto_thread_channels = [
-    976770662205104150 # free-stuff channel
-]
-auto_thread_roles = [
-    956006107564879873 # free-stuff notif role
-]
+auto_thread_mappings = {
+    "976770662205104150": "956006107564879873", # free-stuff channel
+    "1089999083856470016": None, # secret-guides channel
+}
+
 managing_roles = [956006107564879880, 956006107577454603]
 
 rss_chan_ids = [int(i) for i in RSS_CHANNELS.split(",")]
