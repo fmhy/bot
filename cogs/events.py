@@ -5,7 +5,7 @@ from datetime import datetime
 import discord
 from discord.ext import commands, tasks
 
-from cogs._config import channel_ids, managing_roles, url_regex, auto_thread_channels, auto_thread_roles
+from cogs._config import channel_ids, managing_roles, url_regex, auto_thread_mappings
 from cogs._helpers import cembed
 from main import Bot
 
@@ -29,6 +29,8 @@ class EventHandling(commands.Cog):
             "https://raw.githubusercontent.com/fmhy/FMHYedit/main/single-page"
         ) as response:
             self.single_page = await response.text()
+            self.bot.logger.info(f"Updated single page cache")
+
 
     async def cog_before_invoke(self, ctx):
         """Triggers typing indicator on Discord before every command."""
@@ -66,8 +68,9 @@ class EventHandling(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        if message.channel.id in auto_thread_channels and any(
-            str(role) in message.content for role in auto_thread_roles
+        chan_id = str(message.channel.id)
+        if chan_id in auto_thread_mappings and (
+            auto_thread_mappings[chan_id] is None or auto_thread_mappings[chan_id] in message.content
         ):
             await message.create_thread(
                 name="Auto-Thread - Please keep discussions in here!",

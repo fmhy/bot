@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 
 import discord
 from discord.ext import commands
@@ -12,5 +12,5 @@ class HelpMenu(commands.MinimalHelpCommand):
             embed.set_footer(
                 text="Use help [command] or help [category] | <> is required | [] is optional"
             )
-            embed.timestamp = datetime.datetime.now(datetime.UTC)
+            embed.timestamp = datetime.now(timezone.utc)
             await destination.send(embed=embed)

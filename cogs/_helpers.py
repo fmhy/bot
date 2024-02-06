@@ -3,12 +3,13 @@ from datetime import datetime
 import certifi
 import discord
 import feedparser
-import pymongo
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
 
 from cogs._config import DB, rss_feed_urls
 
 ca = certifi.where()
-client = pymongo.MongoClient(DB, tlsCAFile=ca)
+client = MongoClient(DB, server_api=ServerApi('1'))
 import base64
 
 mydb = client["fmby"]
@@ -45,7 +46,6 @@ def fetch_feed():
         last_entry = feed.entries[0]
 
         x = list(mycol.find({"link": last_entry.link}))
-        # print(x)
 
         if len(x) == 0:
             article_title = last_entry.title

@@ -1,11 +1,8 @@
 discord.py
 jishaku
 humanize
-beautifulsoup4
 aiohttp
 python-dotenv
 feedparser
-pyyaml
-pymongo
+pymongo[srv]
 certifi
-openai

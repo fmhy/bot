@@ -1,7 +1,7 @@
 import random
 import re
 
-import discord
+from discord import Embed, Interaction, app_commands
 from discord.ext import commands
 
 from cogs._config import url_regex
@@ -27,11 +27,9 @@ class WikiCommands(commands.Cog):
         await ctx.channel.typing()
         return
 
-    @commands.slash_command(
-        name="list", description="Displays random URL(s) from the list of lists."
-    )
-    async def list_links(self, ctx: discord.ApplicationContext, url_num: int):
-        # await ctx.defer()
+    @app_commands.command(name="list", description="Displays random URL(s) from the list of lists.")
+    @app_commands.describe(url_num="Number of URLs to display")
+    async def list_links(self, interaction: Interaction, url_num: int):
         if url_num < 1:
             url_num = 1
         elif url_num > 25:
@@ -39,22 +37,21 @@ class WikiCommands(commands.Cog):
         list_urls = await self.get_urls_from_rentry()
         random_urls = random.sample(list_urls, url_num)
         title = f"Here are {url_num} random URL{'s' if url_num > 1 else ''} from the list of lists:"
-        list_embed = discord.Embed(
+        list_embed = Embed(
             title=title,
             color=0x2B2D31,
         )
         list_embed.set_footer(text="Source: https://rentry.co/oghty")
         list_embed.description = "\n".join([f"{url}" for url in random_urls])
-        # await ctx.interaction.followup.send()
-        await ctx.interaction.response.send_message(embed=list_embed, ephemeral=True)
+        await interaction.response.send_message(embed=list_embed, ephemeral=True)
 
-    @commands.slash_command(name="search", description="Search for query in the wiki")
-    async def searchwiki(self, ctx: discord.ApplicationContext, query: str):
+    @app_commands.command(name="search", description="Search for query in the wiki")
+    async def searchwiki(self, interaction: Interaction, query: str):
         search = await execute(query)
         results = search[0]
-        list_embed = discord.Embed(title=f"Search Results for {query}", color=0x2B2D31)
+        list_embed = Embed(title=f"Search Results for {query}", color=0x2B2D31)
         list_embed.description = "\n\n".join(results)
-        await ctx.respond(embed=list_embed, ephemeral=True)
+        await interaction.response.send_message(embed=list_embed, ephemeral=True)
 
 
 async def setup(bot: Bot):

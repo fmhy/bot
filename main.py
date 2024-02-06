@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 import logging
 import os
 import sys
@@ -17,7 +17,7 @@ os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
 
 class Bot(commands.Bot):
     def __init__(self) -> None:
-        self.start_time = datetime.datetime.now(datetime.UTC)
+        self.start_time = datetime.now(timezone.utc)
         intents = discord.Intents.all()
 
         super().__init__(
@@ -30,7 +30,6 @@ class Bot(commands.Bot):
         self.session: aiohttp.ClientSession
         formatter.install("discord", "INFO")
         formatter.install("bot", "INFO")
-        self.logger = logging.getLogger("discord")
         self.logger = logging.getLogger("bot")
 
     async def setup_hook(self):
@@ -62,6 +61,7 @@ class Bot(commands.Bot):
 
     async def on_ready(self) -> None:
         self.session = aiohttp.ClientSession(loop=self.loop)
+        await self.tree.sync()
         await self.change_presence(activity=discord.Game(name="Free Media Heck Yeah"))
         self.logger.info("Bot is ready!")
 

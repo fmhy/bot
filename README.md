@@ -26,4 +26,5 @@ TODO: Write development instructions here
 
 ## Contributors
 
-- [taskylizard](https://github.com/taskylizard) - creator and maintainer
+- [rhld16](https://github.com/rhld16) - wrangler of code
+- [taskylizard](https://github.com/taskylizard) - despaghettifier
