@@ -30,3 +30,4 @@ Note: You **shouldn't** selfhost this, nor support will be provided. The source 
 
 - [rhld16](https://github.com/rhld16) - wrangler of code
 - [taskylizard](https://github.com/taskylizard) - despaghettifier
+- [Lix](https://github.com/daniel-lxs) - morally culpable

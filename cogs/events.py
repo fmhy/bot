@@ -27,7 +27,7 @@ class EventHandling(commands.Cog):
         self.last_single_page_update = 0
         self.single_page = ""
 
-        self.all_disallowed_messages = []
+        self.all_disallowed_messages = set()
         self.last_fetched_messages = {}
 
     @tasks.loop(minutes=5)
@@ -44,7 +44,7 @@ class EventHandling(commands.Cog):
             channel = self.bot.get_channel(channel_id)
             if channel:
                 messages = await self.fetch_new_messages(channel_id)
-                self.bot.logger.info(f"Grabbing latest disallowed links from {channel_id}")
+                total_links_added = 0
                 for message in messages:
                     msg_links = set(
                         re.findall(
@@ -53,7 +53,11 @@ class EventHandling(commands.Cog):
                         )
                     )
                     for link in msg_links:
-                        self.all_disallowed_messages.append((link, message.jump_url))
+                        self.all_disallowed_messages.add((link, message.jump_url))
+                    total_links_added += len(msg_links)
+
+                if total_links_added > 0:
+                    self.bot.logger.info(f"Added {total_links_added} links from {channel_id}")
 
 
     async def fetch_new_messages(self, channel_id):
@@ -156,13 +160,16 @@ class EventHandling(commands.Cog):
                     color=discord.Color.orange()
                 )
 
-                for disallowed_link, disallowed_jump_url in self.all_disallowed_messages:
-                    if disallowed_link in message_links:
-                        full_link = '://'.join(disallowed_link)
-                        embed.add_field(name="Link:", value=f"{full_link}\n[Go to message]({disallowed_jump_url})", inline=False)
+                for link in message_links:
+                    for disallowed_link, disallowed_jump_url in self.all_disallowed_messages:
+                        if link == disallowed_link:
+                            full_link = '://'.join(disallowed_link)
+                            embed.add_field(name="Link:", value=f"{full_link}\n[Go to message]({disallowed_jump_url})", inline=False)
 
-                reply_message = await message.reply(embed=embed)
-                await reply_message.add_reaction("❌")
+                if len(embed.fields) > 0:
+                    reply_message = await message.reply(embed=embed)
+                    await reply_message.add_reaction("❌")
+                
                 return
 
     @commands.Cog.listener()
