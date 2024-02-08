@@ -52,7 +52,9 @@ class EventHandling(commands.Cog):
                             message.content,
                         )
                     )
-                    self.all_disallowed_messages.extend(msg_links)
+                    for link in msg_links:
+                        self.all_disallowed_messages.append((link, message.jump_url))
+
 
     async def fetch_new_messages(self, channel_id):
         channel = self.bot.get_channel(channel_id)
@@ -148,14 +150,20 @@ class EventHandling(commands.Cog):
                     await reply_message.add_reaction("❌")
                     return
 
-                # Check if any link is in disallowed channels
-                # TODO: Add backreference to message containing link
-                if any(link in self.all_disallowed_messages for link in message_links):
-                    reply_message = await message.reply(
-                        "**:warning: Warning: This link has been previously removed! Please check before submitting again. :warning:**"
-                    )
-                    await reply_message.add_reaction("❌")
-                    return
+                embed = discord.Embed(
+                    title=":warning: Warning",
+                    description="This message contains previously removed links! Please check before submitting again.",
+                    color=discord.Color.orange()
+                )
+
+                for disallowed_link, disallowed_jump_url in self.all_disallowed_messages:
+                    if disallowed_link in message_links:
+                        full_link = '://'.join(disallowed_link)
+                        embed.add_field(name="Link:", value=f"{full_link}\n[Go to message]({disallowed_jump_url})", inline=False)
+
+                reply_message = await message.reply(embed=embed)
+                await reply_message.add_reaction("❌")
+                return
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
