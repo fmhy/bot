@@ -270,7 +270,7 @@ def filterOutTitleLines(lineList):
 
 def addNumberingToStringList(string_list):
     for i in range(len(string_list)):
-        string_list[i] = f"{i + 1}- {string_list[i]}"
+        string_list[i] = f"**{i + 1}** - {string_list[i]}"
     return string_list
 
 
@@ -305,7 +305,7 @@ def doASearch(searchInput, myLineList):
 
     # # print main results
 
-    return [linesFound[:12], sectionTitleList]
+    return [linesFound[:5], sectionTitleList]
 
     # # print("# printing " + str(len(linesFound)) + " search results:\n")
     # # print(textTo# print)

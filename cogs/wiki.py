@@ -30,6 +30,7 @@ class WikiCommands(commands.Cog):
     @app_commands.command(name="list", description="Displays random URL(s) from the list of lists.")
     @app_commands.describe(url_num="Number of URLs to display")
     async def list_links(self, interaction: Interaction, url_num: int):
+        await interaction.response.defer()
         if url_num < 1:
             url_num = 1
         elif url_num > 25:
@@ -43,15 +44,16 @@ class WikiCommands(commands.Cog):
         )
         list_embed.set_footer(text="Source: https://rentry.co/oghty")
         list_embed.description = "\n".join([f"{url}" for url in random_urls])
-        await interaction.response.send_message(embed=list_embed, ephemeral=True)
+        await interaction.followup.send(embed=list_embed, ephemeral=True)
 
     @app_commands.command(name="search", description="Search for query in the wiki")
     async def searchwiki(self, interaction: Interaction, query: str):
+        await interaction.response.defer()
         search = await execute(query)
         results = search[0]
         list_embed = Embed(title=f"Search Results for {query}", color=0x2B2D31)
-        list_embed.description = "\n\n".join(results)
-        await interaction.response.send_message(embed=list_embed, ephemeral=True)
+        list_embed.description = "\n".join(results)
+        await interaction.followup.send(embed=list_embed, ephemeral=True)
 
 
 async def setup(bot: Bot):
