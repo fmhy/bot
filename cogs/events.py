@@ -24,6 +24,7 @@ class EventHandling(commands.Cog):
 
         self.bookmark_emoji = discord.PartialEmoji(name="🔖")
         self.del_emoji = discord.PartialEmoji(name="❌")
+        self.list_emoji = discord.PartialEmoji(name="📋")
         self.last_single_page_update = 0
         self.single_page = ""
 
@@ -37,6 +38,7 @@ class EventHandling(commands.Cog):
         ) as response:
             self.single_page = await response.text()
             self.bot.logger.info("Updated single page cache")
+            self.last_single_page_update = time.time()
 
     @tasks.loop(minutes=15)
     async def update_disallowed_links(self):
@@ -97,6 +99,28 @@ class EventHandling(commands.Cog):
 
         return duplicate_links, non_duplicate_links
 
+    async def filter_nonduplicates_embed(self, message):
+        message_links = set(re.findall(url_regex, message.content))
+        if message_links:
+            (
+                duplicate_links,
+                non_duplicate_links,
+            ) = await self.get_duplicate_non_duplicate_links(message_links)
+
+            non_duplicate_links_string = "\n".join(
+                [f"{protocol}://{link}" for protocol, link in non_duplicate_links]
+            )
+            non_duplicate_links_embed = cembed(
+                title="__Non-Duplicate Links:__",
+                description=f"{non_duplicate_links_string}",
+            )
+            non_duplicate_links_embed.set_author(
+                name=message.author.name,
+                icon_url=message.author.display_avatar,
+            )
+
+            return non_duplicate_links_embed
+
     @commands.Cog.listener()
     async def on_ready(self):
         self.update_single_page.start()
@@ -123,52 +147,41 @@ class EventHandling(commands.Cog):
                     duplicate_links,
                     non_duplicate_links,
                 ) = await self.get_duplicate_non_duplicate_links(message_links)
-
-                # One link, duplicate
-                if len(message_links) == 1 and len(duplicate_links) == 1:
-                    reply_message = await message.reply("**This link is already in the wiki!**")
-                    await reply_message.add_reaction("❌")
-                    return
-                # All links, duplicates
-                elif len(message_links) > 1 and len(message_links) == len(duplicate_links):
-                    reply_message = await message.reply(
-                        "**All of these links are already in the wiki!**"
-                    )
-                    await reply_message.add_reaction("❌")
-                    return
-                # Partial duplicates
-                elif len(message_links) > 1 and len(duplicate_links) >= 1:
-                    non_duplicate_links_string = "\n".join(
-                        [f"{protocol}://{link}" for protocol, link in non_duplicate_links]
-                    )
-                    non_duplicate_links_embed = cembed(
-                        title="__Non-Duplicate Links:__",
-                        description=f"{non_duplicate_links_string}",
-                    )
-                    non_duplicate_links_embed.set_author(
-                        name=message.author.name,
-                        icon_url=message.author.display_avatar,
-                    )
-
-                    reply_message = await message.reply(embed=non_duplicate_links_embed)
-                    await reply_message.add_reaction("❌")
-                    return
-
                 embed = discord.Embed(
                     title=":warning: Warning",
-                    description="This message contains previously removed links! Please check before submitting again.",
+                    description="",
                     color=discord.Color.orange()
                 )
 
-                for link in message_links:
-                    for disallowed_link, disallowed_jump_url in self.all_disallowed_messages:
-                        if link == disallowed_link:
-                            full_link = '://'.join(disallowed_link)
-                            embed.add_field(name="Link:", value=f"{full_link}\n[Go to message]({disallowed_jump_url})", inline=False)
+                # One link, duplicate
+                if len(message_links) == 1 and len(duplicate_links) == 1:
+                    embed.description = "**This link is already in the wiki!**"
+                # All links, duplicates
+                elif len(message_links) > 1 and len(message_links) == len(duplicate_links):
+                    embed.description = "**All of these links are already in the wiki!**"
+                # Partial duplicates
+                elif len(message_links) > 1 and len(duplicate_links) >= 1:
+                    duplicate_links_string = "\n".join(
+                        [f"{protocol}://{link}" for protocol, link in duplicate_links]
+                    )
+                    embed.add_field(name="Duplicate Link", value=duplicate_links_string, inline=False)
 
-                if len(embed.fields) > 0:
+                    embed.set_footer(text="React with 📋 for a list of your non-duplicated links")
+
+                # Disallowed links
+                for link in message_links:
+                    duplicate_links_string = "\n".join(
+                        [f"{'://'.join(disallowed_link)} | [Go to message]({jump_url})" for disallowed_link, jump_url in self.all_disallowed_messages if link == disallowed_link]
+                    )
+                    if len(duplicate_links_string) > 0:
+                        embed.add_field(name="Previously Removed", value=duplicate_links_string, inline=False)
+
+                if len(embed.fields) > 0 or len(embed.description) > 0:
                     reply_message = await message.reply(embed=embed)
                     await reply_message.add_reaction("❌")
+                    
+                    if len(embed.footer) > 0:
+                        await reply_message.add_reaction("📋")
                 
                 return
 
@@ -229,6 +242,23 @@ class EventHandling(commands.Cog):
                             await msg.reference.resolved.delete()
                         await msg.delete()
                         break
+
+            # Send non-duplicate links as embed
+            if (
+                emoji == self.list_emoji
+                and msg.author.id == self.bot.user.id
+                and payload.user_id != self.bot.user.id
+            ):
+                if msg.reference is not None and not isinstance(
+                    msg.reference.resolved, discord.DeletedReferencedMessage
+                ):
+                    original_message = msg.reference.resolved
+                    non_duplicate_links_embed = await self.filter_nonduplicates_embed(original_message)
+
+                    if non_duplicate_links_embed is not None:
+                        await msg.reply(embed=non_duplicate_links_embed)
+                else:
+                    await msg.reply("Unable to find original message")
         else:
             # Delete message
             if (
