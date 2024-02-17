@@ -267,6 +267,13 @@ def filterOutTitleLines(lineList):
             sectionTitleList.append(line)
     return [filteredList, sectionTitleList]
 
+def filterOutNSFW(lineList):
+    filteredList = []
+    for line in lineList:
+        if 'nsfwpiracy' not in line:
+            filteredList.append(line)
+    return filteredList
+
 
 def addNumberingToStringList(string_list):
     for i in range(len(string_list)):
@@ -277,15 +284,16 @@ def addNumberingToStringList(string_list):
 def doASearch(searchInput, myLineList):
     # intro to the search results
     myFilterWords = removeEmptyStringsFromList(searchInput.lower().split(" "))
-    # print("Looking for lines that contain all of these words:")
-    # print(myFilterWords)
+
     # main results
     linesFoundPrev = filterLines(myLineList, searchInput)
+
+    sfwLines = filterOutNSFW(linesFoundPrev)
 
     # limit result list
     if len(linesFoundPrev) > 300:
         # print("Too many results (" + str(len(linesFoundPrev)) + "). Showing only full-word matches.")
-        linesFoundPrev = getOnlyFullWordMatches(linesFoundPrev, searchInput)
+        linesFoundPrev = getOnlyFullWordMatches(sfwLines, searchInput)
 
     # rank results
     # linesFoundPrev = moveExactMatchesToFront(linesFoundPrev, searchInput)
@@ -294,7 +302,7 @@ def doASearch(searchInput, myLineList):
     # separate title lines
     linesFoundAll = filterOutTitleLines(linesFoundPrev)
     linesFound = linesFoundAll[0]
-    linesFound = addNumberingToStringList(linesFound)
+    linesFound = addNumberingToStringList(sfwLines)
     sectionTitleList = linesFoundAll[1]
 
     # reverse list for terminal
