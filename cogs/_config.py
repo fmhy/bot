@@ -14,6 +14,7 @@ GUILD_ID = os.getenv("GUILD_ID", None)
 OWNERS = os.getenv("OWNERS").split(",")
 RSS_CHANNELS = os.getenv("RSS_CHANNEL_IDS", None)
 FEEDS = os.getenv("RSS_FEED_URLS", None)
+MKSWT_KEY = os.getenv("MKSWT_KEY", str)
 DB = os.getenv("DB_URI")
 
 if not TOKEN:
