@@ -1,43 +1,31 @@
 import logging
 import os
 import re
-from typing import TYPE_CHECKING
 
 from dotenv import load_dotenv
 
 load_dotenv()
+
 log = logging.getLogger(__name__)
 
+
+def _get(variable: str) -> str:
+    val = os.environ.get(variable)
+    if not val:
+        message = f"{variable!r} not set in .env file. Set it."
+        log.error(message)
+        raise ValueError(message)
+    return val
+
+
 prefix = "-"
-TOKEN = os.getenv("TOKEN", None)
-GUILD_ID = os.getenv("GUILD_ID", None)
-OWNERS = os.getenv("OWNERS").split(",")
-RSS_CHANNELS = os.getenv("RSS_CHANNEL_IDS", None)
-FEEDS = os.getenv("RSS_FEED_URLS", None)
-MKSWT_KEY = os.getenv("MKSWT_KEY", str)
-DB = os.getenv("DB_URI")
-
-if not TOKEN:
-    message = "Couldn't find the `TOKEN` environment variable."
-    log.warning(message)
-    raise ValueError(message)
-
-if not GUILD_ID:
-    message = "Couldn't find the `GUILD_ID` environment variable."
-    log.warning(message)
-    raise ValueError(message)
-
-if not OWNERS:
-    message = "Couldn't find the `OWNERS` environment variable."
-    log.warning(message)
-    raise ValueError(message)
-
-# so pyright won't complain of None
-if TYPE_CHECKING:
-    OWNERS: list[str]
-    FEEDS: str
-    RSS_CHANNELS: str
-    TOKEN: str
+TOKEN = _get("TOKEN")
+GUILD_ID = _get("GUILD_ID")
+OWNERS = _get("OWNERS").split(",")
+RSS_CHANNELS = _get("RSS_CHANNEL_IDS")
+FEEDS = _get("RSS_FEED_URLS")
+MKSWT_KEY = _get("MKSWT_KEY")
+DB = os.environ.get("DB_URI")
 
 url_regex = re.compile(
     r"(https?):\/\/(?:ww(?:w|\d+)\.)?((?:[\w_-]+(?:\.[\w_-]+)+)[\w.,@?^=%&:\/~+#-]*[\w@?^=%&~+-])"
