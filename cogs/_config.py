@@ -17,11 +17,14 @@ def _get(variable: str) -> str:
         raise ValueError(message)
     return val
 
+def _get_int_list(variable: str): 
+    val = _get(variable)
+    return [int(x) for x in val.split(",")]
 
 prefix = "-"
 TOKEN = _get("TOKEN")
 GUILD_ID = _get("GUILD_ID")
-OWNERS = _get("OWNERS").split(",")
+OWNERS = _get_int_list("OWNERS")
 RSS_CHANNELS = _get("RSS_CHANNEL_IDS")
 FEEDS = _get("RSS_FEED_URLS")
 MKSWT_KEY = _get("MKSWT_KEY")

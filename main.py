@@ -25,6 +25,7 @@ class Bot(commands.Bot):
             intents=intents,
             help_command=help.HelpMenu(),
             case_insensitive=True,
+            owner_ids=OWNERS
         )
 
         self.session: aiohttp.ClientSession
@@ -51,12 +52,6 @@ class Bot(commands.Bot):
 
         elapsed = time.perf_counter() - s
         self.logger.info(f"Loaded all extensions - took {elapsed:.2f}s")
-
-    async def is_owner(self, user: discord.abc.User):
-        if user.id in OWNERS:
-            return True
-        # Else fall back to the original
-        return await super().is_owner(user)
 
     async def on_ready(self) -> None:
         self.session = aiohttp.ClientSession(loop=self.loop)
