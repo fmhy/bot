@@ -1,3 +1,5 @@
+import json
+import random
 import urllib.parse
 from io import BytesIO
 from typing import Optional
@@ -10,8 +12,35 @@ from discord.ext import commands
 from PIL import Image
 
 from cogs._config import MKSWT_KEY
-from core import drama
 from main import Bot
+
+data = json.load(open("data/drama.json"))
+
+
+def fillPhrase(phrase: str, data: dict):
+    phr = phrase.split(" ")
+    for i in range(len(phr)):
+        for j in data["replacers"].keys():
+            if phr[i].startswith(j):
+                replacives = data[data["replacers"][j]]
+                current_phrase = " ".join(phr)
+                to_replace_with = random.choice(replacives)
+                if to_replace_with not in current_phrase:
+                    phr[i] = phr[i].replace(j, to_replace_with)
+                    break
+                else:
+                    replacives.remove(to_replace_with)
+                    phr[i] = phr[i].replace(j, random.choice(replacives))
+                    break
+    return " ".join(phr)
+
+
+def getPhrase(data: dict):
+    return random.choice(data["phrases"])
+
+
+def generateRandomPhrase():
+    return fillPhrase(getPhrase(data), data)
 
 
 async def to_bytes(session: ClientSession, media_url: str):
@@ -85,7 +114,7 @@ class Fun(commands.Cog):
 
     @app_commands.command(name="drama", description="Generate funny piracy community drama.")
     async def drama(self, interaction: Interaction):
-        phrase = drama.generateRandomPhrase()
+        phrase = generateRandomPhrase()
         return await interaction.response.send_message(content=phrase)
 
     @app_commands.command(name="create", description="Funny heart locket sealed away forever")
