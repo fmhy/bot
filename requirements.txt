@@ -6,3 +6,4 @@ python-dotenv
 feedparser
 pymongo[srv]
 certifi
+pillow

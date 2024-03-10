@@ -10,6 +10,7 @@ from discord.ext import commands
 from PIL import Image
 
 from cogs._config import MKSWT_KEY
+from core import drama
 from main import Bot
 
 
@@ -81,6 +82,11 @@ class Fun(commands.Cog):
 
     def __init__(self, bot: Bot):
         self.bot = bot
+
+    @app_commands.command(name="drama", description="Generate funny piracy community drama.")
+    async def drama(self, interaction: Interaction):
+        phrase = drama.generateRandomPhrase()
+        return await interaction.response.send_message(content=phrase)
 
     @app_commands.command(name="create", description="Funny heart locket sealed away forever")
     @app_commands.describe(

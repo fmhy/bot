@@ -272,10 +272,11 @@ def filterOutTitleLines(lineList):
             sectionTitleList.append(line)
     return [filteredList, sectionTitleList]
 
+
 def filterOutNSFW(lineList):
     filteredList = []
     for line in lineList:
-        if 'nsfwpiracy' not in line:
+        if "nsfwpiracy" not in line:
             filteredList.append(line)
     return filteredList
 

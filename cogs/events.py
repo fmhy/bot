@@ -61,7 +61,6 @@ class EventHandling(commands.Cog):
                 if total_links_added > 0:
                     self.bot.logger.info(f"Added {total_links_added} links from {channel_id}")
 
-
     async def fetch_new_messages(self, channel_id):
         channel = self.bot.get_channel(channel_id)
         last_fetched_message_id = self.last_fetched_messages.get(channel_id, None)
@@ -148,9 +147,7 @@ class EventHandling(commands.Cog):
                     non_duplicate_links,
                 ) = await self.get_duplicate_non_duplicate_links(message_links)
                 embed = discord.Embed(
-                    title=":warning: Warning",
-                    description="",
-                    color=discord.Color.orange()
+                    title=":warning: Warning", description="", color=discord.Color.orange()
                 )
 
                 # One link, duplicate
@@ -164,25 +161,33 @@ class EventHandling(commands.Cog):
                     duplicate_links_string = "\n".join(
                         [f"{protocol}://{link}" for protocol, link in duplicate_links]
                     )
-                    embed.add_field(name="Duplicate Link", value=duplicate_links_string, inline=False)
+                    embed.add_field(
+                        name="Duplicate Link", value=duplicate_links_string, inline=False
+                    )
 
                     embed.set_footer(text="React with 📋 for a list of your non-duplicated links")
 
                 # Disallowed links
                 for link in message_links:
                     duplicate_links_string = "\n".join(
-                        [f"{'://'.join(disallowed_link)} | [Go to message]({jump_url})" for disallowed_link, jump_url in self.all_disallowed_messages if link == disallowed_link]
+                        [
+                            f"{'://'.join(disallowed_link)} | [Go to message]({jump_url})"
+                            for disallowed_link, jump_url in self.all_disallowed_messages
+                            if link == disallowed_link
+                        ]
                     )
                     if len(duplicate_links_string) > 0:
-                        embed.add_field(name="Previously Removed", value=duplicate_links_string, inline=False)
+                        embed.add_field(
+                            name="Previously Removed", value=duplicate_links_string, inline=False
+                        )
 
                 if len(embed.fields) > 0 or len(embed.description) > 0:
                     reply_message = await message.reply(embed=embed)
                     await reply_message.add_reaction("❌")
-                    
+
                     if len(embed.footer) > 0:
                         await reply_message.add_reaction("📋")
-                
+
                 return
 
     @commands.Cog.listener()
@@ -253,7 +258,9 @@ class EventHandling(commands.Cog):
                     msg.reference.resolved, discord.DeletedReferencedMessage
                 ):
                     original_message = msg.reference.resolved
-                    non_duplicate_links_embed = await self.filter_nonduplicates_embed(original_message)
+                    non_duplicate_links_embed = await self.filter_nonduplicates_embed(
+                        original_message
+                    )
 
                     if non_duplicate_links_embed is not None:
                         await msg.reply(embed=non_duplicate_links_embed)

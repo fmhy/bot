@@ -1,0 +1,50 @@
+{
+  "people": [
+    "Tasky",
+    "Nbats",
+    "Bol",
+    "Lix",
+    "Quatroph",
+    "Q",
+    "Zinklog",
+    "Kiwi",
+    "Damon",
+    "Kai",
+    "May",
+    "Pancakes",
+    "Rhld",
+    "Fizzy",
+    "Razor",
+    "Qt",
+    "Static",
+    "Duck",
+    "Bread",
+    "Nullish",
+    "Hoot"
+  ],
+  "servers": [
+    "FMHY",
+    "Champagne",
+    "Privateersclub",
+    "FlightClub",
+    "Wotaku",
+    "PGames",
+    "Esoterica Avenue",
+    "Movies4Discord",
+    "Gamesdrive"
+  ],
+  "phrases": [
+    "%p's community splits due to %p, much to the dismay of %p.",
+    "%p and %p have a packing match.",
+    "%p bans %p, causing them to denounce %p.",
+    "%p doxxes %p.",
+    "%p exposes %p in a google doc.",
+    "%p gets banned by Discord. The %s community is in shambles.",
+    "%p moves to %s, uprooting a whole community.",
+    "%p starts an anonymous twitter account to harass %p."
+  ],
+  "replacers": {
+    "%s": "servers",
+    "%p": "people"
+  }
+}
