@@ -20,7 +20,25 @@
     "Duck",
     "Bread",
     "Nullish",
-    "Hoot"
+    "Hoot",
+    "Demi",
+    "Ollie",
+    "Finisher",
+    "Eitan",
+    "MJ",
+    "Proly",
+    "Sevastian",
+    "Zarch",
+    "Boots",
+    "Zero",
+    "Simulping",
+    "Yorai",
+    "Babayaga",
+    "Ballu",
+    "Luke",
+    "Ronnie",
+    "Sid",
+    "Yabey"
   ],
   "servers": [
     "FMHY",
@@ -41,7 +59,8 @@
     "%p exposes %p in a google doc.",
     "%p gets banned by Discord. The %s community is in shambles.",
     "%p moves to %s, uprooting a whole community.",
-    "%p starts an anonymous twitter account to harass %p."
+    "%p starts an anonymous twitter account to harass %p.",
+    "%p bans %p from %s. %p cries like a baby."
   ],
   "replacers": {
     "%s": "servers",
