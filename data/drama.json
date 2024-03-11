@@ -51,7 +51,8 @@
     "PGames",
     "Esoterica Avenue",
     "Movies4Discord",
-    "Gamesdrive"
+    "Gamesdrive",
+    "The QMJ"
   ],
   "phrases": [
     "%p's community splits due to %p, much to the dismay of %p.",
@@ -62,7 +63,16 @@
     "%p gets banned by Discord. The %s community is in shambles.",
     "%p moves to %s, uprooting a whole community.",
     "%p starts an anonymous twitter account to harass %p.",
-    "%p bans %p from %s. %p cries like a baby."
+    "%p bans %p from %s. %p cries like a baby.",
+    "%p accuses %p of having severe skill issues in Codenames and Skribbl.",
+    "%p threatens to leave the server because %p left a bad review on their profile.",
+    "%p decides to leave %s due to their pro-brave views.",
+    "%p gets banned for impersonating %p and bullying people.",
+    "%p admits they've been a spy for %s all along.",
+    "%p refuses to send another link for cricket to %p, which results in %p having a mental breakdown.",
+    "%p leaves %s because of censorship and mod abuse done by %p.",
+    "%p gets ownership of %s and turns it to a femboy boykisser linux community, causing %p to start a rebellion.",
+    "%p refuses to move %s to Facebook. %p and %p start a raid in protest."
   ],
   "replacers": {
     "%s": "servers",
