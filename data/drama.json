@@ -5,7 +5,6 @@
     "Bol",
     "Lix",
     "Quatroph",
-    "Qatroph",
     "smugshroom",
     "Q",
     "Zinklog",
@@ -78,7 +77,9 @@
     "%p steals the cat ears of %p causing a riot and the splitting of %s.",
     "%p complains about %p's loud and erratic behaviour to their mom.",
     "%p forgets to add /j to their joke and gets blocked by %p.",
-    "%p found out %p is actually not a woman after paying for their Onlyfans."
+    "%p found out %p is actually not a woman after paying for their Onlyfans.",
+    "%p accidentally leaked %p's address on %s leading them to be swatted.",
+    "%p leaks the source code for a project made by %p and people on %s make a better fork."
   ],
   "replacers": {
     "%s": "servers",
