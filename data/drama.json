@@ -72,7 +72,9 @@
     "%p refuses to send another link for cricket to %p, which results in %p having a mental breakdown.",
     "%p leaves %s because of censorship and mod abuse done by %p.",
     "%p gets ownership of %s and turns it to a femboy boykisser linux community, causing %p to start a rebellion.",
-    "%p refuses to move %s to Facebook. %p and %p start a raid in protest."
+    "%p refuses to move %s to Facebook. %p and %p start a raid in protest.",
+    "%p forgets to add /j to his joke and gets blocked by %p",
+    "%p found out %p is actually not a girl after paying for his OF"
   ],
   "replacers": {
     "%s": "servers",
