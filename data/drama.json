@@ -79,8 +79,9 @@
     "%p complains about %p's loud and erratic behaviour to their mom.",
     "%p forgets to add /j to their joke and gets blocked by %p.",
     "%p found out %p is actually not a woman after paying for their Onlyfans.",
-    "%p accidentally leaked %p's address on %s leading them to be swatted.",
-    "%p leaks the source code for a project made by %p and people on %s make a better fork."
+    "%p accidentally leaked %p's address on %s leading to them being swatted.",
+    "%p leaks the source code for a project made by %p and people on %s make a better fork.",
+    "%p posts cringe memes in #general on %s causing them to be demoted."
   ],
   "replacers": {
     "%s": "servers",
