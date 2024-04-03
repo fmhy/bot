@@ -7,3 +7,4 @@ feedparser
 pymongo[srv]
 certifi
 pillow
+wordcloud

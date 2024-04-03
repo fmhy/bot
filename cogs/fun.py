@@ -1,15 +1,19 @@
+import asyncio
+import functools
 import json
 import random
 import urllib.parse
-from io import BytesIO
-from typing import Optional
+from io import BytesIO, StringIO
+from typing import Any, Optional
 
 from aiohttp import FormData
 from aiohttp.client import ClientSession
 from discord import Attachment, File, Interaction, app_commands
+import discord
 from discord.app_commands import Choice
 from discord.ext import commands
 from PIL import Image
+from wordcloud import ImageColorGenerator, WordCloud
 
 from cogs._config import MKSWT_KEY
 from main import Bot
@@ -160,6 +164,85 @@ class Fun(commands.Cog):
             raise Exception("No gif was returned.")
 
         await interaction.followup.send(file=File(gif, f"{template}.gif"))
+
+    @app_commands.checks.bot_has_permissions(attach_files=True, read_message_history=True)
+    @app_commands.checks.cooldown(1, 300, key=None) # global cooldown
+    @app_commands.command(name="wordcloud", description="Generate worcloud from channel's messages history.")
+    @app_commands.guild_only()
+    async def wordcloud(self, interaction: Interaction[Bot]):
+        # This should be rare occurrence but since d.py says interaction.channel can be null sometimes
+        # catch that here and early return if its ever null to avoid unnecessary processing or errors.
+        if not interaction.channel:
+            await interaction.response.send_message("No channel found to fetch messages.", ephemeral=True)
+            return
+
+        # how many number of messages to fetch from channel history
+        max_limit = 20_000
+
+        # sane defaults for wordcloud
+        image_mode = "RGB"
+        ## can be "clear" for transparent background
+        ## change above to "RGBA" if below is set to "clear"
+        image_bg_color = "black"
+        max_words = 200
+        ## list of words to filter out if any as required
+        excluded = []
+        ## you can pass a mask image object here
+        ## something like numpy.array(Image.open(...))
+        image_mask = None
+        ## a coloring function compatible with wordcloud
+        ## e.g. ImageColorGenerator(mask)
+        coloring_func = None
+
+        # keyword args to pass to WordCloud instance
+        kwargs = {
+            "mode": image_mode,
+            "background_color": image_bg_color,
+            "mask": image_mask,
+            "color_func": coloring_func,
+            "max_words": max_words,
+            "stopwords": excluded or None,
+            "width": 1920,
+            "height": 1080,
+        }
+
+        await interaction.response.defer()
+        buffer = StringIO()
+        # Get messages history from current channel
+        async for msg in interaction.channel.history(limit=max_limit):
+            # should we filter out bots/webhooks here?
+            # as well as non content like embeds/stickers/attachment only messages without content?
+            buffer.write(msg.clean_content)
+            buffer.write(" ")
+        text = buffer.getvalue()
+        buffer.close()
+        # generation is sync/blocking function so loop in asyncio executor
+        # to not block the bot's function while this is processing
+        task = functools.partial(self._generate_wordcloud, text, **kwargs)
+        loop = asyncio.get_running_loop()
+        executor = loop.run_in_executor(None, task)
+        # early exit if executor takes more than 2 minutes to process
+        try:
+            image = await asyncio.wait_for(executor, timeout=120)
+        except asyncio.TimeoutError:
+            await interaction.followup.send(
+                "wordcloud generation took too long to generate funny image.",
+                ephemeral=True, # make it non ephemeral if you want
+            )
+            return
+        await interaction.followup.send(file=discord.File(image))
+        # close resources to avoid mem leak
+        image.close()
+        return
+
+    def _generate_wordcloud(self, text: str, **kwargs: Any) -> BytesIO:
+        wc = WordCloud(**kwargs)
+        wc.generate(text=text)
+        buffer = BytesIO()
+        buffer.name = "wordcloud.jpg" # change this to PNG format if image_mode is RGBA
+        wc.to_file(buffer)
+        buffer.seek(0)
+        return buffer
 
 
 async def setup(bot: Bot):
