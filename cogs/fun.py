@@ -169,15 +169,22 @@ class Fun(commands.Cog):
     @app_commands.checks.cooldown(1, 300, key=None) # global cooldown
     @app_commands.command(name="wordcloud", description="Generate worcloud from channel's messages history.")
     @app_commands.guild_only()
-    async def wordcloud(self, interaction: Interaction[Bot]):
-        # This should be rare occurrence but since d.py says interaction.channel can be null sometimes
+    @app_commands.describe(
+        limit="Enter the number of messages to fetch from chat history. Defaults to 1K, capped at 10K messages."
+    )
+    async def wordcloud(self, interaction: Interaction[Bot], limit: Optional[int] = None):
+        # This should be rare occurrence but d.py says interaction.channel can be null sometimes, so
         # catch that here and early return if its ever null to avoid unnecessary processing or errors.
         if not interaction.channel:
             await interaction.response.send_message("No channel found to fetch messages.", ephemeral=True)
             return
 
         # how many number of messages to fetch from channel history
-        max_limit = 20_000
+        # below logic should cap limit of messages to be fetched at 10K max
+        # even if the user gives absurd input, defaults to 1K messages
+        # as sane limit if `limit` is not provided by user.
+        # Minimum is set to 10 messages to generate any meaning output.
+        max_limit = max(min(limit or 1_000, 10_000), 10)
 
         # sane defaults for wordcloud
         image_mode = "RGB"
