@@ -167,7 +167,7 @@ class Fun(commands.Cog):
 
     @app_commands.checks.bot_has_permissions(attach_files=True, read_message_history=True)
     @app_commands.checks.cooldown(1, 300, key=None) # global cooldown
-    @app_commands.command(name="wordcloud", description="Generate worcloud from channel's messages history.")
+    @app_commands.command(name="wordcloud", description="Generate wordcloud from channel's messages history.")
     @app_commands.guild_only()
     @app_commands.describe(
         limit="Enter the number of messages to fetch from chat history. Defaults to 1K, capped at 10K messages."
