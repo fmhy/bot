@@ -3,6 +3,7 @@ import traceback
 import humanize
 from discord.ext import commands
 
+from discord.app_commands import errors
 from main import Bot
 
 
@@ -13,7 +14,7 @@ class Errors(commands.Cog):
         self.bot = bot
 
     async def on_command_error(self, ctx: commands.Context, e: Exception):
-        e = getattr(e, "original", e)
+        e = getattr(e, "olriginal", e)
         if isinstance(e, commands.NoPrivateMessage):
             await ctx.author.send("This command cannot be used in private messages.")
         elif isinstance(e, commands.DisabledCommand):
@@ -36,6 +37,10 @@ class Errors(commands.Cog):
         elif isinstance(e, commands.MissingRequiredArgument):
             await ctx.send(f"Missing argument: `{e.param}`")
         elif isinstance(e, commands.CommandOnCooldown):
+            await ctx.send(
+                f"This command is on cooldown, try again in {humanize.naturaldelta(e.retry_after)}"
+            )
+        elif isinstance(e, errors.CommandOnCooldown):
             await ctx.send(
                 f"This command is on cooldown, try again in {humanize.naturaldelta(e.retry_after)}"
             )
