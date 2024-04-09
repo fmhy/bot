@@ -6,12 +6,10 @@ Note: You **shouldn't** selfhost this, nor support will be provided. The source 
 
 ## Usage
 
-> [!NOTE]
-> [`mise`](https://github.com/jdx/mise) is recommended for managing tools and dependencies like Python. After installation, you will need to trust this repository with `mise trust`.
-1. You will need Python 3.10 or anything new, so install that.
-2. Install dependencies with `pip install -r requirements.txt`
-3. Fill the config details
-4. Run a production ready mongodb server.
+1. You will need [`rye`](https://rye-up.com) to install dependencies and manage a virtualenv.
+2. Install dependencies with `rye sync`.
+3. Fill the config details in `.env`.
+4. Run a production ready mongodb server, then start the bot with `rye run bot`.
 
 ## Development
 

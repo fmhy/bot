@@ -1,2 +1,3 @@
 [tools]
-python = { version = "3.12.1", virtualenv = '.venv' }
+python = { version = "3.12.1" }
+rye = "latest"
