@@ -218,7 +218,7 @@ class Fun(commands.Cog):
         )
         description = f"Online: **`{data["online"]}`**\n"
         description += f"Offline: **`{data['offline']}`**\n"
-        description += f"Idle: **`{data['offline']}`**\n"
+        description += f"Idle: **`{data['idle']}`**\n"
         description += f"Do Not Distrub: **`{data["dnd"]}`**\n"
         embed.description = description
         embed.set_image(url="attachment://stat.png")
