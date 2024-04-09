@@ -1,121 +1,160 @@
+[project]
+name = "bot"
+version = "0.1.0"
+description = "Bot for our discord."
+authors = [
+    { name = "taskylizard", email = "75871323+taskylizard@users.noreply.github.com" },
+]
+dependencies = [
+    "aiohttp",
+    "certifi",
+    "discord.py",
+    "feedparser",
+    "humanize",
+    "jishaku",
+    "pillow",
+    "pymongo[srv]",
+    "python-dotenv",
+    "wordcloud",
+]
+readme = "README.md"
+requires-python = ">= 3.12"
+classifiers = ["Private :: Do Not Upload"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+
+[tool.rye.scripts]
+"bot" = { call = "bot" }
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bot"]
+
 [tool.ruff]
 target-version = "py312"
 line-length = 100
-required-version = "0.2.1"
 
 [tool.ruff.lint]
 ignore = [
-  # (missing public docstrings) These work off of the Python sense of "public", rather than our
-  # bespoke definition based off of `@public`. When ruff supports custom plugins then we can write
-  # appropriate rules to require docstrings for `@public`.
-  "D100",
-  "D101",
-  "D102",
-  "D103",
-  "D104",
-  "D105",
-  "D106",
-  "D107",
+    # (missing public docstrings) These work off of the Python sense of "public", rather than our
+    # bespoke definition based off of `@public`. When ruff supports custom plugins then we can write
+    # appropriate rules to require docstrings for `@public`.
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D106",
+    "D107",
 
-  # (docstring imperative mood) Overly restrictive.
-  "D401",
+    # (docstring imperative mood) Overly restrictive.
+    "D401",
 
-  # (module level import not at top) There are several places where we use e.g.
-  # warnings.filterwarings calls before imports.
-  "E402",
+    # (module level import not at top) There are several places where we use e.g.
+    # warnings.filterwarings calls before imports.
+    "E402",
 
-  # (line too long): This fires for comments, which the ruff formatter won't auto-wrap. Disabling
-  # until there is an autoformat solution available for comments.
-  "E501",
+    # (line too long): This fires for comments, which the ruff formatter won't auto-wrap. Disabling
+    # until there is an autoformat solution available for comments.
+    "E501",
 
-  # (no type comparison): There are a few places where we use `== type(None)` which are more clear
-  # than the equivalent `isinstance` check.
-  'E721',
+    # (no type comparison): There are a few places where we use `== type(None)` which are more clear
+    # than the equivalent `isinstance` check.
+    'E721',
 
-  # (bare exception): There are many places where we want to catch a maximally generic exception.
-  'E722',
+    # (bare exception): There are many places where we want to catch a maximally generic exception.
+    'E722',
 
-  # (no assign lambda): existing code assigns lambdas in a few places. With ruff formatting
-  # requiring extra empty lines between defs, disallowing lambda assignment can make code less
-  # readable.
-  "E731",
+    # (no assign lambda): existing code assigns lambdas in a few places. With ruff formatting
+    # requiring extra empty lines between defs, disallowing lambda assignment can make code less
+    # readable.
+    "E731",
 
-  # (try-except-in-loop) we use this pattern in many places and the performance impact is negligible
-  "PERF203",
+    # (try-except-in-loop) we use this pattern in many places and the performance impact is negligible
+    "PERF203",
 
-  # (no concatenation) Existing codebase has many concatentations, no reason to disallow them.
-  "RUF005",
+    # (no concatenation) Existing codebase has many concatentations, no reason to disallow them.
+    "RUF005",
 
-  # (use ClassVar for attr declarations with defaults) This is a good rule for vanilla Python, but
-  # triggers false positives for many libs that have DSLs that make use of attr defaults.
-  "RUF012",
+    # (use ClassVar for attr declarations with defaults) This is a good rule for vanilla Python, but
+    # triggers false positives for many libs that have DSLs that make use of attr defaults.
+    "RUF012",
 
-  # (assorted perf rules) We have a lot of violations, enable when autofix is available
-  "PERF401", # (manual-list-comprehension)
-  "PERF402", # (manual-list-copy)
+    # (assorted perf rules) We have a lot of violations, enable when autofix is available
+    "PERF401", # (manual-list-comprehension)
+    "PERF402", # (manual-list-copy)
 ]
 
 # By default, ruff only uses all "E" (pycodestyle) and "F" (pyflakes) rules.
 # Here we append to the defaults.
 select = [
-  # (flake8-builtins) detect shadowing of python builtin symbols by variables and arguments.
-  # Attributes are OK (which is why A003) is not included here.
-  "A001",
-  "A002",
+    # (flake8-builtins) detect shadowing of python builtin symbols by variables and arguments.
+    # Attributes are OK (which is why A003) is not included here.
+    "A001",
+    "A002",
 
-  # (useless expression): Expressions that aren't assigned to anything are typically bugs.
-  "B018",
+    # (useless expression): Expressions that aren't assigned to anything are typically bugs.
+    "B018",
 
-  # (static key dict comprehension): Flag reuse of a key in dict comprehensions.
-  "B035",
+    # (static key dict comprehension): Flag reuse of a key in dict comprehensions.
+    "B035",
 
-  # (pydocstyle) Docstring-related rules. A large subset of these are ignored by the
-  # "convention=google" setting, we set under tool.ruff.pydocstyle.
-  "D",
+    # (pydocstyle) Docstring-related rules. A large subset of these are ignored by the
+    # "convention=google" setting, we set under tool.ruff.pydocstyle.
+    "D",
 
-  # (pycodestyle) pycodestyle rules
-  "E",
+    # (pycodestyle) pycodestyle rules
+    "E",
 
-  # (pyflakes) pyflakes rules
-  "F",
+    # (pyflakes) pyflakes rules
+    "F",
 
-  # (isort) detect improperly sorted imports
-  "I001",
+    # (isort) detect improperly sorted imports
+    "I001",
 
-  # (performance) perflint rules
-  "PERF",
+    # (performance) perflint rules
+    "PERF",
 
-  # (pylint) use all pylint rules from categories "Convention", "Error", and "Warning" (ruff
-  # currently implements only a subset of pylint's rules)
-  "PLE",
-  "PLW",
+    # (pylint) use all pylint rules from categories "Convention", "Error", and "Warning" (ruff
+    # currently implements only a subset of pylint's rules)
+    "PLE",
+    "PLW",
 
-  # (no commented out code) keep commented out code blocks out of the codebase
-  # "ERA001",
+    # (no commented out code) keep commented out code blocks out of the codebase
+    # "ERA001",
 
-  # (ruff-specific) Enable all ruff-specific checks (i.e. not ports of
-  # functionality from an existing linter).
-  "RUF",
+    # (ruff-specific) Enable all ruff-specific checks (i.e. not ports of
+    # functionality from an existing linter).
+    "RUF",
 
-  # (private member access) Flag access to `_`-prefixed symbols. By default the various special
-  # methods on `NamedTuple` are ignored (e.g. `_replace`).
-  "SLF001",
+    # (private member access) Flag access to `_`-prefixed symbols. By default the various special
+    # methods on `NamedTuple` are ignored (e.g. `_replace`).
+    "SLF001",
 
-  # (flake8-type-checking) Auto-sort imports into TYPE_CHECKING blocks depending on whether
-  # they are runtime or type-only imports.
-  "TCH",
+    # (flake8-type-checking) Auto-sort imports into TYPE_CHECKING blocks depending on whether
+    # they are runtime or type-only imports.
+    "TCH",
 
-  # (banned-api) Flag use of banned APIs. See tool.ruff.flake8-tidy-imports.banned-api for details.
-  "TID251",
+    # (banned-api) Flag use of banned APIs. See tool.ruff.flake8-tidy-imports.banned-api for details.
+    "TID251",
 
-  # (disallow print statements) keep debugging statements out of the codebase
-  "T20",
+    # (disallow print statements) keep debugging statements out of the codebase
+    "T20",
 
-  # (f-strings) use f-strings instead of .format()
-  "UP032",
+    # (f-strings) use f-strings instead of .format()
+    "UP032",
 
-  # (invalid escape sequence) flag errant backslashes
-  "W605",
+    # (invalid escape sequence) flag errant backslashes
+    "W605",
 ]
 
 [tool.ruff.lint.isort]

@@ -6,7 +6,7 @@ import feedparser
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
-from cogs._config import DB, rss_feed_urls
+from bot.core.config import DB, rss_feed_urls
 
 ca = certifi.where()
 client = MongoClient(DB, server_api=ServerApi("1"))
@@ -26,7 +26,7 @@ def cembed(title, description, **kwargs):
     )
 
 
-EMOJI = "\U0001F4F0"
+EMOJI = "\U0001f4f0"
 
 
 def fetch_feed():

@@ -5,19 +5,19 @@ from datetime import datetime
 import discord
 from discord.ext import commands, tasks
 
-from cogs._config import (
+from bot.core import Bot
+from bot.core.config import (
     auto_thread_mappings,
     channel_ids,
     disallowed_channel_ids,
     managing_roles,
     url_regex,
 )
-from cogs._helpers import cembed
-from main import Bot
+from bot.core.helpers import cembed
 
 
-class EventHandling(commands.Cog):
-    """EventHandling commands"""
+class Events(commands.Cog):
+    """Event handler cog, for bookmarks, etc."""
 
     def __init__(self, bot: Bot):
         self.bot = bot
@@ -31,13 +31,25 @@ class EventHandling(commands.Cog):
         self.all_disallowed_messages = set()
         self.last_fetched_messages = {}
 
+    async def cog_load(self) -> None:
+        if not self.bot.is_ready():
+            return
+        self.update_single_page.start()
+        self.update_disallowed_links.start()
+        return await super().cog_load()
+
+    async def cog_unload(self) -> None:
+        self.update_single_page.stop()
+        self.update_disallowed_links.stop()
+        return await super().cog_unload()
+
     @tasks.loop(minutes=5)
     async def update_single_page(self):
         async with self.bot.session.get(
             "https://raw.githubusercontent.com/fmhy/FMHYedit/main/single-page"
         ) as response:
             self.single_page = await response.text()
-            self.bot.logger.info("Updated single page cache")
+            self.bot.logger.info("Updated single page cache.")
             self.last_single_page_update = time.time()
 
     @tasks.loop(minutes=15)
@@ -78,11 +90,6 @@ class EventHandling(commands.Cog):
 
         return messages
 
-    async def cog_before_invoke(self, ctx):
-        """Triggers typing indicator on Discord before every command."""
-        await ctx.channel.typing()
-        return
-
     async def get_duplicate_non_duplicate_links(self, message_links):
         if time.time() - self.last_single_page_update >= 300:
             await self.update_single_page()
@@ -119,11 +126,6 @@ class EventHandling(commands.Cog):
             )
 
             return non_duplicate_links_embed
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        self.update_single_page.start()
-        self.update_disallowed_links.start()
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -277,4 +279,4 @@ class EventHandling(commands.Cog):
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(EventHandling(bot))
+    await bot.add_cog(Events(bot))

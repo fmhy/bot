@@ -17,9 +17,11 @@ def _get(variable: str) -> str:
         raise ValueError(message)
     return val
 
-def _get_int_list(variable: str): 
+
+def _get_int_list(variable: str):
     val = _get(variable)
     return [int(x) for x in val.split(",")]
+
 
 prefix = "-"
 TOKEN = _get("TOKEN")

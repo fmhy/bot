@@ -4,13 +4,13 @@ import re
 from discord import Embed, Interaction, app_commands
 from discord.ext import commands
 
-from cogs._config import url_regex
-from cogs._search_help import execute
-from main import Bot
+from bot.core import Bot
+from bot.core.config import url_regex
+from bot.core.search_help import execute
 
 
-class WikiCommands(commands.Cog):
-    """WikiCommands commands"""
+class Wiki(commands.Cog):
+    """Commands for interacting with the wiki."""
 
     def __init__(self, bot: Bot):
         self.bot = bot
@@ -21,11 +21,6 @@ class WikiCommands(commands.Cog):
         return list(
             set([f"{protocol}://{domain}" for protocol, domain in re.findall(url_regex, urls)])
         )
-
-    async def cog_before_invoke(self, ctx):
-        """Triggers typing indicator on Discord before every command."""
-        await ctx.channel.typing()
-        return
 
     @app_commands.command(name="list", description="Displays random URL(s) from the list of lists.")
     @app_commands.describe(url_num="Number of URLs to display")
@@ -57,4 +52,4 @@ class WikiCommands(commands.Cog):
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(WikiCommands(bot))
+    await bot.add_cog(Wiki(bot))

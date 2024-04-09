@@ -1,8 +1,9 @@
+import cogs._helpers as hp
 import discord
 from discord.ext import commands
-
-import cogs._helpers as hp
 from main import Bot
+
+# NOTE: This cog is disable and does not work. We decided against base64 commands.
 
 
 class Base64(commands.Cog):
@@ -10,11 +11,6 @@ class Base64(commands.Cog):
 
     def __init__(self, bot: Bot):
         self.bot = bot
-
-    async def cog_before_invoke(self, ctx):
-        """Triggers typing indicator on Discord before every command."""
-        await ctx.channel.typing()
-        return
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):

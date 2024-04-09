@@ -4,19 +4,20 @@ import json
 import random
 import urllib.parse
 from io import BytesIO, StringIO
-from typing import Any, Optional
+from typing import Any, Optional, Sequence
 
+import discord
+import matplotlib.pyplot as plt
 from aiohttp import FormData
 from aiohttp.client import ClientSession
-from discord import Attachment, File, Interaction, app_commands
-import discord
+from discord import Attachment, File, Interaction, Member, app_commands
 from discord.app_commands import Choice
 from discord.ext import commands
 from PIL import Image
-from wordcloud import ImageColorGenerator, WordCloud
+from wordcloud import WordCloud
 
-from cogs._config import MKSWT_KEY
-from main import Bot
+from bot.core import Bot
+from bot.core.config import MKSWT_KEY
 
 data = json.load(open("data/drama.json"))
 
@@ -45,6 +46,26 @@ def getPhrase(data: dict):
 
 def generateRandomPhrase():
     return fillPhrase(getPhrase(data), data)
+
+
+def statServer(members: Sequence[Member]) -> dict:
+    status = {}
+    must = ["members", "bot", "streaming", "idle", "dnd", "online", "offline", "mobile"]
+    for a in must:
+        status[a] = 0
+    for member in members:
+        status["members"] += 1
+        status[str(member.status)] += 1
+        if member.is_on_mobile():
+            status["mobile"] += 1
+        if member.bot:
+            status["bot"] += 1
+        if member.activity or member.activities:
+            for activity in member.activities:
+                if activity.type == discord.ActivityType.streaming:
+                    status["streaming"] += 1
+
+    return status
 
 
 async def to_bytes(session: ClientSession, media_url: str):
@@ -140,7 +161,7 @@ class Fun(commands.Cog):
     )
     async def makesweet(
         self,
-        interaction: Interaction,
+        interaction: Interaction[Bot],
         template: str,
         image: Optional[Attachment],
         text: Optional[str],
@@ -165,9 +186,51 @@ class Fun(commands.Cog):
 
         await interaction.followup.send(file=File(gif, f"{template}.gif"))
 
+    @app_commands.checks.bot_has_permissions(use_external_emojis=True)
+    @app_commands.command(name="statistics", description="Display statistics about the guild.")
+    @app_commands.checks.cooldown(1, 15.0, key=lambda i: (i.guild_id, i.user.id))
+    @app_commands.guild_only()
+    async def stat(self, interaction: Interaction[Bot]) -> None:
+        """Show a graphic pie about the server's members."""
+        plt.clf()
+        ax, data, colors = (
+            plt.subplot(),
+            statServer(interaction.guild.members),  # type: ignore
+            ["#747f8d", "#f04747", "#faa81a", "#43b582"],
+        )  # type: ignore
+        ax.pie(
+            [data["offline"], data["dnd"], data["idle"], data["online"]],
+            colors=colors,
+            startangle=-40,
+            wedgeprops=dict(width=0.5),
+        )
+        leg = ax.legend(
+            ["Offline", "dnd", "idle", "Online"], frameon=False, loc="lower center", ncol=5
+        )
+        for color, text in zip(colors, leg.get_texts()):
+            text.set_color(color)
+        image_binary = BytesIO()
+        plt.savefig(image_binary, transparent=True)
+        image_binary.seek(0)
+
+        embed = discord.Embed(
+            title=f"Current server stats ({data['members']})",
+        )
+        description = f"Online: **`{data["online"]}`**\n"
+        description += f"Offline: **`{data['offline']}`**\n"
+        description += f"Idle: **`{data['offline']}`**\n"
+        description += f"Do Not Distrub: **`{data["dnd"]}`**\n"
+        embed.description = description
+        embed.set_image(url="attachment://stat.png")
+        await interaction.response.send_message(
+            file=discord.File(fp=image_binary, filename="stat.png"), embed=embed
+        )
+
     @app_commands.checks.bot_has_permissions(attach_files=True, read_message_history=True)
-    @app_commands.checks.cooldown(1, 300, key=None) # global cooldown
-    @app_commands.command(name="wordcloud", description="Generate wordcloud from channel's messages history.")
+    @app_commands.checks.cooldown(1, 300, key=None)  # global cooldown
+    @app_commands.command(
+        name="wordcloud", description="Generate wordcloud from channel's messages history."
+    )
     @app_commands.guild_only()
     @app_commands.describe(
         limit="Enter the number of messages to fetch from chat history. Defaults to 1K, capped at 10K messages."
@@ -176,7 +239,9 @@ class Fun(commands.Cog):
         # This should be rare occurrence but d.py says interaction.channel can be null sometimes, so
         # catch that here and early return if its ever null to avoid unnecessary processing or errors.
         if not interaction.channel:
-            await interaction.response.send_message("No channel found to fetch messages.", ephemeral=True)
+            await interaction.response.send_message(
+                "No channel found to fetch messages.", ephemeral=True
+            )
             return
 
         # how many number of messages to fetch from channel history
@@ -234,7 +299,7 @@ class Fun(commands.Cog):
         except asyncio.TimeoutError:
             await interaction.followup.send(
                 "wordcloud generation took too long to generate funny image.",
-                ephemeral=True, # make it non ephemeral if you want
+                ephemeral=True,  # make it non ephemeral if you want
             )
             return
         await interaction.followup.send(file=discord.File(image))
@@ -246,7 +311,7 @@ class Fun(commands.Cog):
         wc = WordCloud(**kwargs)
         wc.generate(text=text)
         buffer = BytesIO()
-        buffer.name = "wordcloud.jpg" # change this to PNG format if image_mode is RGBA
+        buffer.name = "wordcloud.jpg"  # change this to PNG format if image_mode is RGBA
         wc.to_file(buffer)
         buffer.seek(0)
         return buffer

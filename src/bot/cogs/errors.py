@@ -1,20 +1,47 @@
 import traceback
+from datetime import datetime, timedelta, timezone
 
+import discord
 import humanize
+from discord import (
+    Interaction,
+    app_commands as app,
+)
 from discord.ext import commands
 
-from discord.app_commands import errors
-from main import Bot
+from bot.core import Bot
 
 
 class Errors(commands.Cog):
-    """Error handler for commands."""
+    """Error handler for commands and interactions."""
 
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
+        self.bot.on_command_error = self.on_command_error
+        self.bot.tree.on_error = self.on_tree_error
+
+    async def on_tree_error(self, interaction: Interaction[Bot], error: app.AppCommandError):
+        if isinstance(error, app.CommandNotFound):
+            await interaction.response.send_message(
+                f"Could not find {error.name}, it was probably updated or removed.", ephemeral=True
+            )
+        if isinstance(error, app.CommandOnCooldown):
+            relative_time = discord.utils.format_dt(
+                datetime.now(timezone.utc) + timedelta(seconds=error.retry_after), "R"
+            )
+            await interaction.response.send_message(
+                f"This command is on cooldown, try again {relative_time}.",
+                ephemeral=True,
+            )
+        else:
+            self.bot.logger.error(
+                f"{type(error).__name__}: {error} ({interaction.command.name})",  # type: ignore
+                exc_info=error,
+            )
+            traceback.print_exc()
 
     async def on_command_error(self, ctx: commands.Context, e: Exception):
-        e = getattr(e, "olriginal", e)
+        e = getattr(e, "original", e)
         if isinstance(e, commands.NoPrivateMessage):
             await ctx.author.send("This command cannot be used in private messages.")
         elif isinstance(e, commands.DisabledCommand):
@@ -37,10 +64,6 @@ class Errors(commands.Cog):
         elif isinstance(e, commands.MissingRequiredArgument):
             await ctx.send(f"Missing argument: `{e.param}`")
         elif isinstance(e, commands.CommandOnCooldown):
-            await ctx.send(
-                f"This command is on cooldown, try again in {humanize.naturaldelta(e.retry_after)}"
-            )
-        elif isinstance(e, errors.CommandOnCooldown):
             await ctx.send(
                 f"This command is on cooldown, try again in {humanize.naturaldelta(e.retry_after)}"
             )
