@@ -84,7 +84,8 @@
     "%p found out %p is actually not a woman after paying for their Onlyfans.",
     "%p accidentally leaked %p's address on %s leading to them being swatted.",
     "%p leaks the source code for a project made by %p and people on %s make a better fork.",
-    "%p posts cringe memes in #general on %s causing them to be demoted."
+    "%p posts cringe memes in #general on %s causing them to be demoted.",
+    "%p makes a rentry post and new channel about how to improve %s's community. Discussion quickly devolves into %p's sex life."
   ],
   "replacers": {
     "%s": "servers",
