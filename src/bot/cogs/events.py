@@ -268,14 +268,14 @@ class Events(commands.Cog):
                         await msg.reply(embed=non_duplicate_links_embed)
                 else:
                     await msg.reply("Unable to find original message")
-        else:
-            # Delete message
-            if (
-                emoji == self.del_emoji
-                and msg.author.id == self.bot.user.id
-                and payload.user_id != self.bot.user.id
-            ):
-                await msg.delete()
+            else:
+                # Delete message
+                if (
+                    emoji == self.del_emoji
+                    and msg.author.id == self.bot.user.id
+                    and payload.user_id != self.bot.user.id
+                ):
+                    await msg.delete()
 
 
 async def setup(bot: Bot):
