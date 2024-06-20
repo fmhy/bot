@@ -16,6 +16,7 @@ dependencies = [
     "pymongo[srv]",
     "python-dotenv",
     "wordcloud",
+    "requests"
 ]
 readme = "README.md"
 requires-python = ">= 3.12"

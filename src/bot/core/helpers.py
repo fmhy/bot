@@ -1,19 +1,21 @@
 from datetime import datetime
 
-import certifi
+import base64
 import discord
 import feedparser
+import logging
+import requests
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
 from bot.core.config import DB, rss_feed_urls
 
-ca = certifi.where()
 client = MongoClient(DB, server_api=ServerApi("1"))
-import base64
 
 mydb = client["fmby"]
 mycol = mydb["sent_articles"]
+
+logger = logging.getLogger(__name__)
 
 
 def cembed(title, description, **kwargs):
@@ -34,8 +36,13 @@ def fetch_feed():
     sent_articles = list(mycol.find().sort("_id", -1))
 
     for rss_feed_url in rss_feed_urls:
-        # Parse the RSS feed
-        feed = feedparser.parse(rss_feed_url)
+        try:
+            resp = requests.get(rss_feed_url, timeout=10.0)
+        except requests.ReadTimeout:
+            logger.warning("Timeout when reading RSS %s", rss_feed_url)
+            return
+
+        feed = feedparser.parse(resp.content)
 
         # Check if the feed was parsed successfully
         if feed.bozo:

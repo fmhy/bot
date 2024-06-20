@@ -21,6 +21,9 @@ braceexpand==0.1.7
     # via jishaku
 certifi==2024.2.2
     # via bot
+    # via requests
+charset-normalizer==3.3.2
+    # via requests
 click==8.1.7
     # via jishaku
 contourpy==1.2.1
@@ -41,6 +44,7 @@ frozenlist==1.4.1
 humanize==4.9.0
     # via bot
 idna==3.6
+    # via requests
     # via yarl
 import-expression==1.1.4
     # via jishaku
@@ -71,11 +75,15 @@ python-dateutil==2.9.0.post0
     # via matplotlib
 python-dotenv==1.0.1
     # via bot
+requests==2.31.0
+    # via bot
 sgmllib3k==1.0.0
     # via feedparser
 six==1.16.0
     # via astunparse
     # via python-dateutil
+urllib3==2.2.1
+    # via requests
 wheel==0.43.0
     # via astunparse
 wordcloud==1.9.3
