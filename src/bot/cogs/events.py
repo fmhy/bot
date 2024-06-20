@@ -32,8 +32,6 @@ class Events(commands.Cog):
         self.last_fetched_messages = {}
 
     async def cog_load(self) -> None:
-        if not self.bot.is_ready():
-            return
         self.update_single_page.start()
         self.update_disallowed_links.start()
         return await super().cog_load()
@@ -54,6 +52,9 @@ class Events(commands.Cog):
 
     @tasks.loop(minutes=15)
     async def update_disallowed_links(self):
+        if not self.bot.is_ready():
+            return
+
         for channel_id in disallowed_channel_ids:
             channel = self.bot.get_channel(channel_id)
             if channel:
@@ -235,20 +236,26 @@ class Events(commands.Cog):
                         f"**{user.mention} I do not have permission to DM you. Please enable DMs for this server.**"
                     )
 
-            # Delete message if user has roles that can manage messages
+            # Delete message if user (is author of original message OR has roles that can manage messages)
             if (
                 emoji == self.del_emoji
                 and msg.author.id == self.bot.user.id
                 and payload.user_id != self.bot.user.id
             ):
-                for role in payload.member.roles:
-                    if role.id in managing_roles:
-                        if msg.reference is not None and not isinstance(
-                            msg.reference.resolved, discord.DeletedReferencedMessage
-                        ):
-                            await msg.reference.resolved.delete()
+                managing_user = any(role.id in managing_roles for role in payload.member.roles)
+
+                if msg.reference is not None and not isinstance(
+                    msg.reference.resolved, discord.DeletedReferencedMessage
+                ):
+                    referenced_msg = msg.reference.resolved
+                    is_author = referenced_msg.author.id == payload.user_id
+
+                    if managing_user or is_author:
+                        await referenced_msg.delete()
                         await msg.delete()
-                        break
+                else:
+                    if managing_user:
+                        await msg.delete()
 
             # Send non-duplicate links as embed
             if (
@@ -268,14 +275,6 @@ class Events(commands.Cog):
                         await msg.reply(embed=non_duplicate_links_embed)
                 else:
                     await msg.reply("Unable to find original message")
-        else:
-            # Delete message
-            if (
-                emoji == self.del_emoji
-                and msg.author.id == self.bot.user.id
-                and payload.user_id != self.bot.user.id
-            ):
-                await msg.delete()
 
 
 async def setup(bot: Bot):
