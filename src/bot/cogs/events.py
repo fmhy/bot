@@ -43,9 +43,7 @@ class Events(commands.Cog):
 
     @tasks.loop(minutes=5)
     async def update_single_page(self):
-        async with self.bot.session.get(
-            "https://raw.githubusercontent.com/fmhy/FMHYedit/main/single-page"
-        ) as response:
+        async with self.bot.session.get("https://api.fmhy.net/single-page") as response:
             self.single_page = await response.text()
             self.bot.logger.info("Updated single page cache.")
             self.last_single_page_update = time.time()

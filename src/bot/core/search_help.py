@@ -145,9 +145,7 @@ async def standardWikiIndexing():
     # If that fails, try to get it from Github
     # print("Loading FMHY single-page file from Github...")
     async with aiohttp.ClientSession() as session:
-        async with session.get(
-            "https://raw.githubusercontent.com/nbats/FMHYedit/main/single-page"
-        ) as response:
+        async with session.get("https://api.fmhy.net/single-page") as response:
             t = await response.text()
             lines = t.split("\n")
             return lines
