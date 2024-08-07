@@ -13,7 +13,7 @@ Note: You **shouldn't** selfhost this, nor support will be provided. The source 
 
 ## Development
 
-1. Follow the above
+1. [Follow the above](#usage)
 2. Setup a development mongodb server. If you have node/bun, you can get upto speed with `[npx|pnpx|bunx] mongoz`, see [unjs/mongoz](https://github.com/unjs/mongoz).
 
 ## Contributing
