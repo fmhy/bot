@@ -1,8 +1,8 @@
 # fmhy/bot
 
-This is our Discord bot made specifically for our server. It provides numerous utilities and other tools to help keep the server running like a well-oiled machine.
+This code is for FreeMediaBotYeah, a Discord bot made specifically for the FMHY Discord server. It provides numerous utilities and other tools to help keep the server running like a well-oiled machine.
 
-Note: You **shouldn't** selfhost this, nor support will be provided. The source code here is provided for educational and development purposes.
+**Note:** This source code is provided as-is for educational and development purposes only. You **shouldn't** self-host this. Support will not be provided if you choose to do so.
 
 ## Usage
 
@@ -13,7 +13,7 @@ Note: You **shouldn't** selfhost this, nor support will be provided. The source 
 
 ## Development
 
-1. Follow the above
+1. [Follow the above](#usage)
 2. Setup a development mongodb server. If you have node/bun, you can get upto speed with `[npx|pnpx|bunx] mongoz`, see [unjs/mongoz](https://github.com/unjs/mongoz).
 
 ## Contributing
@@ -26,6 +26,8 @@ Note: You **shouldn't** selfhost this, nor support will be provided. The source 
 
 ## Contributors
 
-- [rhld16](https://github.com/rhld16) - wrangler of code
-- [taskylizard](https://github.com/taskylizard) - despaghettifier
-- [Lix](https://github.com/daniel-lxs) - morally culpable
+- [Terrence Tingleberry](https://github.com/maureenferreira)/@terrencetingleberry (Discord) - Creator & Original Programmer
+- [rhld16](https://github.com/rhld16) - Wrangler of Code
+- [taskylizard](https://github.com/taskylizard) - De-spaghettifier
+- [Lix](https://github.com/daniel-lxs) - Morally Culpable
+- jsmsj - Bookmarks Cog
