@@ -230,10 +230,8 @@ class Events(commands.Cog):
                     sent = await user.send(content=f"\n{attach}", embed=embed)
                     await sent.add_reaction("❌")
                 except discord.Forbidden:
-                    await channel.send(
-                        f"**{user.mention} I do not have permission to DM you. Please enable DMs for this server.**"
-                    )
-
+                    # Nobody cares about this
+                    pass
             # Delete message if user (is author of original message OR has roles that can manage messages)
             if (
                 emoji == self.del_emoji
