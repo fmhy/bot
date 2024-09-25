@@ -55,3 +55,4 @@ bin
 lib64
 pyvenv.cfg
 archived
+state

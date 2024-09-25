@@ -1,5 +1,5 @@
 import traceback
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import discord
 import humanize
@@ -10,6 +10,7 @@ from discord import (
 from discord.ext import commands
 
 from bot.core import Bot
+from bot.core.checks import CodenamesChannelError, CodenamesHostError
 
 
 class Errors(commands.Cog):
@@ -27,12 +28,16 @@ class Errors(commands.Cog):
             )
         if isinstance(error, app.CommandOnCooldown):
             relative_time = discord.utils.format_dt(
-                datetime.now(timezone.utc) + timedelta(seconds=error.retry_after), "R"
+                datetime.now(UTC) + timedelta(seconds=error.retry_after), "R"
             )
             await interaction.response.send_message(
                 f"This command is on cooldown, try again {relative_time}.",
                 ephemeral=True,
             )
+        if isinstance(error, CodenamesHostError):
+            await interaction.response.send_message(str(error), ephemeral=True)
+        if isinstance(error, CodenamesChannelError):
+            await interaction.response.send_message(str(error), ephemeral=True)
         else:
             self.bot.logger.error(
                 f"{type(error).__name__}: {error} ({interaction.command.name})",  # type: ignore

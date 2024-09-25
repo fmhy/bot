@@ -1,13 +1,9 @@
-from typing import TYPE_CHECKING
-
+from discord.channel import TextChannel
 from discord.ext import commands, tasks
 
 from bot.core import Bot
 from bot.core.config import rss_chan_ids
 from bot.core.helpers import fetch_feed
-
-if TYPE_CHECKING:
-    from discord.channel import TextChannel
 
 
 class RSSFeeds(commands.Cog):
@@ -27,8 +23,9 @@ class RSSFeeds(commands.Cog):
     async def send_rss(self):
         for msg in fetch_feed():
             for channel_id in rss_chan_ids:
-                # FIXME: pyright complains, typecast this to TextChannel somehow
-                chan: TextChannel = await self.bot.fetch_channel(channel_id)  # type: ignore
+                chan = self.bot.get_partial_messageable(channel_id, guild_id=None)
+                if not isinstance(chan, TextChannel):
+                    continue
                 await chan.send(msg)
 
 

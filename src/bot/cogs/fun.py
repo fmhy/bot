@@ -3,8 +3,9 @@ import functools
 import json
 import random
 import urllib.parse
+from collections.abc import Sequence
 from io import BytesIO, StringIO
-from typing import Any, Optional, Sequence
+from typing import Any
 
 import discord
 import matplotlib.pyplot as plt
@@ -102,9 +103,9 @@ async def to_bytes(session: ClientSession, media_url: str):
 async def make_gif(
     bot: Bot,
     template: str,
-    text: Optional[str],
-    image: Optional[Attachment],
-    swap: Optional[bool],
+    text: str | None,
+    image: Attachment | None,
+    swap: bool | None,
 ):
     url = f"https://api.makesweet.com/make/{template}"
 
@@ -163,9 +164,9 @@ class Fun(commands.Cog):
         self,
         interaction: Interaction[Bot],
         template: str,
-        image: Optional[Attachment],
-        text: Optional[str],
-        swap: Optional[bool] = False,
+        image: Attachment | None,
+        text: str | None,
+        swap: bool | None = False,
     ):
         if not text and not image:
             return await interaction.response.send_message(
@@ -235,7 +236,7 @@ class Fun(commands.Cog):
     @app_commands.describe(
         limit="Enter the number of messages to fetch from chat history. Defaults to 1K, capped at 10K messages."
     )
-    async def wordcloud(self, interaction: Interaction[Bot], limit: Optional[int] = None):
+    async def wordcloud(self, interaction: Interaction[Bot], limit: int | None = None):
         # This should be rare occurrence but d.py says interaction.channel can be null sometimes, so
         # catch that here and early return if its ever null to avoid unnecessary processing or errors.
         if not interaction.channel:
@@ -296,7 +297,7 @@ class Fun(commands.Cog):
         # early exit if executor takes more than 2 minutes to process
         try:
             image = await asyncio.wait_for(executor, timeout=120)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             await interaction.followup.send(
                 "wordcloud generation took too long to generate funny image.",
                 ephemeral=True,  # make it non ephemeral if you want

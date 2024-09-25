@@ -1,8 +1,9 @@
 import logging
 import os
 import time
-from datetime import datetime, timezone
-from typing import Any, Awaitable, Callable, Coroutine, Optional, ParamSpec, Tuple, TypeVar
+from collections.abc import Awaitable, Callable, Coroutine
+from datetime import UTC, datetime
+from typing import Any, ParamSpec, TypeVar
 
 import aiohttp
 import discord
@@ -10,6 +11,7 @@ from discord.ext import commands
 
 from bot.core import formatter, help
 from bot.core.config import OWNERS, prefix
+from bot.core.database import Database
 
 os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
 
@@ -19,8 +21,8 @@ T = TypeVar("T")
 
 def _wrap_extension(
     func: Callable[P, Awaitable[T]],
-) -> Callable[P, Coroutine[Any, Any, Optional[T]]]:
-    async def log_extension(*args: P.args, **kwargs: P.kwargs) -> Optional[T]:
+) -> Callable[P, Coroutine[Any, Any, T | None]]:
+    async def log_extension(*args: P.args, **kwargs: P.kwargs) -> T | None:
         fmt_args = 'on ext "{}"{}'.format(args[1], f" with kwargs {kwargs}" if kwargs else "")
         start = time.monotonic()
 
@@ -46,7 +48,7 @@ def _wrap_extension(
     return log_extension
 
 
-initial_extensions: Tuple[str, ...] = (
+initial_extensions: tuple[str, ...] = (
     # Core
     "jishaku",
     "bot.cogs.errors",
@@ -55,12 +57,15 @@ initial_extensions: Tuple[str, ...] = (
     "bot.cogs.fun",
     "bot.cogs.wiki",
     "bot.cogs.rss",
+    "bot.cogs.codenames",
 )
 
 
 class Bot(commands.Bot):
+    db: Database
+
     def __init__(self, session: aiohttp.ClientSession) -> None:
-        self.start_time = datetime.now(timezone.utc)
+        self.start_time = datetime.now(UTC)
         intents = discord.Intents.all()
 
         super().__init__(
@@ -76,6 +81,8 @@ class Bot(commands.Bot):
         self.logger = logging.getLogger("bot")
 
     async def setup_hook(self):
+        await Database.create()
+        self.db = Database()
         for extension in initial_extensions:
             await self.load_extension(extension)
         self.logger.info(f"Loaded all {len(initial_extensions)} extensions.")
@@ -87,7 +94,7 @@ class Bot(commands.Bot):
 
     @_wrap_extension
     @discord.utils.copy_doc(commands.Bot.load_extension)
-    async def load_extension(self, name: str, *, package: Optional[str] = None) -> None:
+    async def load_extension(self, name: str, *, package: str | None = None) -> None:
         try:
             await super().load_extension(name, package=package)
         except:
@@ -95,7 +102,7 @@ class Bot(commands.Bot):
 
     @_wrap_extension
     @discord.utils.copy_doc(commands.Bot.unload_extension)
-    async def unload_extension(self, name: str, *, package: Optional[str] = None) -> None:
+    async def unload_extension(self, name: str, *, package: str | None = None) -> None:
         try:
             await super().unload_extension(name, package=package)
         except:
@@ -103,7 +110,7 @@ class Bot(commands.Bot):
 
     @_wrap_extension
     @discord.utils.copy_doc(commands.Bot.reload_extension)
-    async def reload_extension(self, name: str, *, package: Optional[str] = None) -> None:
+    async def reload_extension(self, name: str, *, package: str | None = None) -> None:
         try:
             await super().reload_extension(name, package=package)
         except:

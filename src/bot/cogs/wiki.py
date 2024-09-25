@@ -18,9 +18,7 @@ class Wiki(commands.Cog):
     async def get_urls_from_rentry(self):
         async with self.bot.session.get("https://rentry.co/oghty/raw") as response:
             urls = await response.text()
-        return list(
-            set([f"{protocol}://{domain}" for protocol, domain in re.findall(url_regex, urls)])
-        )
+        return list({f"{protocol}://{domain}" for protocol, domain in re.findall(url_regex, urls)})
 
     @app_commands.command(name="list", description="Displays random URL(s) from the list of lists.")
     @app_commands.describe(url_num="Number of URLs to display")

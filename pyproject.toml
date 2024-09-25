@@ -8,15 +8,18 @@ authors = [
 dependencies = [
     "aiohttp",
     "certifi",
-    "discord.py",
+    "discord.py >= 2.3.2",
     "feedparser",
     "humanize",
     "jishaku",
-    "pillow",
+    "pillow>=10.4.0",
     "pymongo[srv]",
     "python-dotenv",
     "wordcloud",
-    "requests"
+    "requests",
+    "aiosqlite>=0.20.0",
+    "aiofiles>=24.1.0",
+    "sentry-sdk>=2.13.0",
 ]
 readme = "README.md"
 requires-python = ">= 3.12"
@@ -32,6 +35,7 @@ dev-dependencies = []
 
 [tool.rye.scripts]
 "bot" = { call = "bot" }
+"prod" = { call = "bot", env = { ENV = "production" } }
 
 [tool.hatch.metadata]
 allow-direct-references = true
@@ -39,9 +43,15 @@ allow-direct-references = true
 [tool.hatch.build.targets.wheel]
 packages = ["src/bot"]
 
+[tool.pyright]
+# We use ruff for this.
+reportInvalidStringEscapeSequence = false
+
 [tool.ruff]
 target-version = "py312"
 line-length = 100
+# Group violations by containing file.
+output-format = "grouped"
 
 [tool.ruff.lint]
 ignore = [
@@ -97,7 +107,7 @@ ignore = [
 
 # By default, ruff only uses all "E" (pycodestyle) and "F" (pyflakes) rules.
 # Here we append to the defaults.
-select = [
+extend-select = [
     # (flake8-builtins) detect shadowing of python builtin symbols by variables and arguments.
     # Attributes are OK (which is why A003) is not included here.
     "A001",
@@ -119,19 +129,19 @@ select = [
     # (pyflakes) pyflakes rules
     "F",
 
+    # (pyupgrade) pyupgrade rules
+    "UP",
+
     # (isort) detect improperly sorted imports
     "I001",
 
-    # (performance) perflint rules
-    "PERF",
+    # ban relative imports
+    "TID252",
 
     # (pylint) use all pylint rules from categories "Convention", "Error", and "Warning" (ruff
     # currently implements only a subset of pylint's rules)
     "PLE",
     "PLW",
-
-    # (no commented out code) keep commented out code blocks out of the codebase
-    # "ERA001",
 
     # (ruff-specific) Enable all ruff-specific checks (i.e. not ports of
     # functionality from an existing linter).
@@ -158,19 +168,34 @@ select = [
     "W605",
 ]
 
-[tool.ruff.lint.isort]
+[tool.ruff.lint.flake8-builtins]
+# We use `id` in many places and almost never want to use the python builtin.
+builtins-ignorelist = ["id"]
 
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"__future__.annotations".msg = "Directly quote annotations instead."
+
+[tool.ruff.lint.isort]
 # Combine multiple `from foo import bar as baz` statements with the same source
 # (`foo`) into a single statement.
 combine-as-imports = true
+
+# In cases where imports are automatically removed, allows the imports to be automatically collapsed
+split-on-trailing-comma = false
 
 # Imports of the form `from foo import bar as baz` show one `import bar as baz`
 # per line. Useful for __init__.py files that just re-export symbols.
 force-wrap-aliases = true
 
-[tool.ruff.lint.pydocstyle]
+[tool.ruff.lint.flake8-tidy-imports]
+# Disallow all relative imports.
+ban-relative-imports = "all"
 
+[tool.ruff.lint.pydocstyle]
 # Enforce google-style docstrings. This is equivalent to ignoring a large number of pydocstyle (D)
 # rules incompatible with google-style docstrings. See:
 # https://google.github.io/styleguide/pyguide.html#383-functions-and-methods
 convention = "google"
+
+[tool.ruff.format]
+docstring-code-format = true
