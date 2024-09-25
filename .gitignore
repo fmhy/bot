@@ -56,3 +56,7 @@ lib64
 pyvenv.cfg
 archived
 state
+
+# supervisord
+supervisord.pid
+supervisord.log
