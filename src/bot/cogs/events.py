@@ -48,13 +48,14 @@ class Events(commands.Cog):
             self.bot.logger.info("Updated single page cache.")
             self.last_single_page_update = time.time()
 
-    @tasks.loop(minutes=15)
+    @tasks.loop(minutes=10)
     async def update_disallowed_links(self):
-        if not self.bot.is_ready():
-            return
+        self.bot.logger.info("Ready")
 
         for channel_id in disallowed_channel_ids:
+            self.bot.logger.info(f"Checking {channel_id}")
             channel = self.bot.get_channel(channel_id)
+            self.bot.logger.info(f"Channel: {channel.name}")
             if channel:
                 messages = await self.fetch_new_messages(channel_id)
                 total_links_added = 0
@@ -72,16 +73,34 @@ class Events(commands.Cog):
                 if total_links_added > 0:
                     self.bot.logger.info(f"Added {total_links_added} links from {channel_id}")
 
+    @update_disallowed_links.before_loop
+    async def update_disallowed_links_before_loop(self):
+        await self.bot.wait_until_ready()
+
     async def fetch_new_messages(self, channel_id):
         channel = self.bot.get_channel(channel_id)
-        last_fetched_message_id = self.last_fetched_messages.get(channel_id, None)
+        last_fetched_message_id = self.last_fetched_messages.get(channel_id)
 
         messages = []
-        async for msg in channel.history(
-            limit=None,
-            after=(discord.Object(last_fetched_message_id) if last_fetched_message_id else None),
-        ):
-            messages.append(msg)
+        fetch_limit = 200
+        has_more_messages = True
+
+        while has_more_messages:
+            batch = []
+            async for msg in channel.history(
+                limit=fetch_limit,
+                after=(
+                    discord.Object(last_fetched_message_id) if last_fetched_message_id else None
+                ),
+                oldest_first=True,
+            ):
+                batch.append(msg)
+
+            if batch:
+                messages.extend(batch)
+                last_fetched_message_id = batch[-1].id
+            else:
+                has_more_messages = False
 
         self.last_fetched_messages[channel_id] = (
             messages[-1].id if messages else last_fetched_message_id

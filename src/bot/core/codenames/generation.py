@@ -242,19 +242,19 @@ async def words(dict_name: str) -> tuple[list[str], list[str], str, list[str], l
 
     available_words: list[str] = list(team1_words + team2_words + [endgame_word] + no_team_words)
 
-    print("Dictionary", dict_name, "loaded.")
-    print(
-        "Team 1 words:",
-        team1_words,
-        "\nTeam 2 words:",
-        team2_words,
-        "\nEndgame word:",
-        endgame_word,
-        "\nNo team words:",
-        no_team_words,
-        "\nAll words:",
-        available_words,
-    )
+    # print("Dictionary", dict_name, "loaded.")
+    # print(
+    #     "Team 1 words:",
+    #     team1_words,
+    #     "\nTeam 2 words:",
+    #     team2_words,
+    #     "\nEndgame word:",
+    #     endgame_word,
+    #     "\nNo team words:",
+    #     no_team_words,
+    #     "\nAll words:",
+    #     available_words,
+    # )
     return team1_words, team2_words, endgame_word, no_team_words, available_words
 
 

@@ -46,7 +46,7 @@ channel_ids = [
 
 disallowed_channel_ids = [
     988133247575810059,  # dead-sites
-    986617857133649921,  # bad-sites
+    986617857133649921,  # removed-sites
 ]
 
 # Automatic thread creation
