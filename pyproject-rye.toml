@@ -29,9 +29,13 @@ classifiers = ["Private :: Do Not Upload"]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.uv]
+[tool.rye]
 managed = true
 dev-dependencies = []
+
+[tool.rye.scripts]
+"bot" = { call = "bot" }
+"prod" = { call = "bot", env = { ENV = "production" } }
 
 [tool.hatch.metadata]
 allow-direct-references = true

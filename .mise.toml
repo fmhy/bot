@@ -1,3 +1,5 @@
 [tools]
-python = { version = "3.12.1" }
-rye = "latest"
+uv = "latest"
+
+[env]
+_.python.venv = ".venv"
