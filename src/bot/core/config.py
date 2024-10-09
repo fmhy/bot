@@ -57,5 +57,6 @@ auto_thread_mappings = {
 
 managing_roles = [956006107564879880, 956006107577454603]
 
-rss_chan_ids = [int(i) for i in RSS_CHANNELS.split(",")]
+news_forum = 1289918731811553283
+news_tag = 1289925916360704111
 rss_feed_urls = FEEDS.split(",")

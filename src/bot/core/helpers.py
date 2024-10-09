@@ -5,6 +5,7 @@ from datetime import datetime
 import discord
 import feedparser
 import requests
+from attr import dataclass
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
@@ -31,7 +32,13 @@ def cembed(title, description, **kwargs):
 EMOJI = "\U0001f4f0"
 
 
-def fetch_feed():
+@dataclass
+class Article:
+    title: str
+    link: str
+
+
+def fetch_feeds():
     # Load the seen IDs from the file, or create an empty dictionary
     sent_articles = list(mycol.find().sort("_id", -1))
 
@@ -46,8 +53,8 @@ def fetch_feed():
 
         # Check if the feed was parsed successfully
         if feed.bozo:
-            print(f"Error parsing RSS feed: {feed.bozo_exception}")
-            print(f"{rss_feed_url}")
+            logger.info(f"Error parsing RSS feed: {feed.bozo_exception}")
+            logger.info(f"{rss_feed_url}")
             continue
 
         last_entry = feed.entries[0]
@@ -59,12 +66,12 @@ def fetch_feed():
             article_link = last_entry.link
             mycol.insert_one({"link": last_entry.link})
 
-            # print(f"New article: {article_title}")
-            # print(f"Link: {article_link}")
+            # logger.info(f"New article: {article_title}")
+            # logger.info(f"Link: {article_link}")
 
-            yield f"{EMOJI}  |  {article_title}\n\n{article_link}"
+            yield Article(title=f"{EMOJI}  |  {article_title}", link=article_link)
 
-        # print(f"Parsing complete for {rss_feed_url}")
+        # logger.info(f"Parsing complete for {rss_feed_url}")
 
 
 def split_discord_message(response, char_limit=1900):

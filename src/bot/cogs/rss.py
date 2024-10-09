@@ -1,13 +1,13 @@
-from discord.channel import TextChannel
+from discord.channel import ForumChannel
 from discord.ext import commands, tasks
 
 from bot.core import Bot
-from bot.core.config import rss_chan_ids
-from bot.core.helpers import fetch_feed
+from bot.core.config import news_forum, news_tag
+from bot.core.helpers import fetch_feeds
 
 
 class RSSFeeds(commands.Cog):
-    """RSS relating commands."""
+    """RSS related events cog."""
 
     def __init__(self, bot: Bot):
         self.bot = bot
@@ -21,12 +21,19 @@ class RSSFeeds(commands.Cog):
 
     @tasks.loop(seconds=300)
     async def send_rss(self):
-        for msg in fetch_feed():
-            for channel_id in rss_chan_ids:
-                chan = self.bot.get_partial_messageable(channel_id, guild_id=None)
-                if not isinstance(chan, TextChannel):
-                    continue
-                await chan.send(msg)
+        for feed in fetch_feeds():
+            forum = self.bot.get_channel(news_forum)
+            if not isinstance(forum, ForumChannel):
+                return
+            tag = forum.get_tag(news_tag)
+            if not tag:
+                return
+            await forum.create_thread(
+                name=feed.title,
+                content=feed.link,
+                reason="Thread created by FMHY Bot",
+                applied_tags=[tag],
+            )
 
 
 async def setup(bot: Bot):

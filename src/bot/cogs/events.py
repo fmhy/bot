@@ -153,7 +153,7 @@ class Events(commands.Cog):
             or auto_thread_mappings[chan_id] in message.content
         ):
             await message.create_thread(
-                name="Auto-Thread - Please keep discussions in here!",
+                name="🧵 Please keep discussions in here!",
                 reason="Auto thread created by FMHY Bot",
             )
 
