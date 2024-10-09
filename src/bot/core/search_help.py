@@ -85,7 +85,7 @@ async def dlWikiChunk(fileName, icon, redditSubURL):
     # print("Local file not found. Downloading " + fileName + "from Github...")
     async with aiohttp.ClientSession() as session:
         async with session.get(
-            "https://raw.githubusercontent.com/nbats/FMHYedit/main/" + fileName
+            "https://raw.githubusercontent.com/fmhy/edit/main/docs/" + fileName
         ) as response:
             t = await response.text()
             lines = t.split("\n")
