@@ -23,7 +23,7 @@ from bot.core.config import MKSWT_KEY
 data = json.load(open("data/drama.json"))
 
 
-def fillPhrase(phrase: str, data: dict):
+def fill_phrase(phrase: str, data: dict):
     phr = phrase.split(" ")
     for i in range(len(phr)):
         for j in data["replacers"].keys():
@@ -41,15 +41,15 @@ def fillPhrase(phrase: str, data: dict):
     return " ".join(phr)
 
 
-def getPhrase(data: dict):
+def get_phrase(data: dict):
     return random.choice(data["phrases"])
 
 
-def generateRandomPhrase():
-    return fillPhrase(getPhrase(data), data)
+def generate_random_phrase():
+    return fill_phrase(get_phrase(data), data)
 
 
-def statServer(members: Sequence[Member]) -> dict:
+def stat_server(members: Sequence[Member]) -> dict:
     status = {}
     must = ["members", "bot", "streaming", "idle", "dnd", "online", "offline", "mobile"]
     for a in must:
@@ -140,52 +140,52 @@ class Fun(commands.Cog):
 
     @app_commands.command(name="drama", description="Generate funny piracy community drama.")
     async def drama(self, interaction: Interaction):
-        phrase = generateRandomPhrase()
+        phrase = generate_random_phrase()
         return await interaction.response.send_message(content=phrase)
 
-    @app_commands.command(name="create", description="Funny heart locket sealed away forever")
-    @app_commands.describe(
-        template="For example heart-locket for tasky my beloved",
-        image="Will be prioritized to text if only one of them is available.",
-        text="Will be passed as second parameter, i.e. right side of heart locked.",
-        swap="Swap image and text so text comes first.",
-    )
-    @app_commands.choices(
-        template=[
-            Choice(name="Heart Locket", value="heart-locket"),
-            Choice(name="Flying Bear", value="flying-bear"),
-            Choice(name="Flag", value="flag"),
-            Choice(name="Billboard City", value="billboard-cityscape"),
-            Choice(name="Nesting Doll", value="nesting-doll"),
-            Choice(name="Circuit Board", value="circuit-board"),
-        ]
-    )
-    async def makesweet(
-        self,
-        interaction: Interaction[Bot],
-        template: str,
-        image: Attachment | None,
-        text: str | None,
-        swap: bool | None = False,
-    ):
-        if not text and not image:
-            return await interaction.response.send_message(
-                f"{template} selected without either of `text` or `image`.", ephemeral=True
-            )
-
-        if image:
-            file_extension = urllib.parse.urlparse(image.url).path.split(".")[-1]
-            if file_extension not in ["jpeg", "jpg", "gif", "png", "webp"]:
-                return await interaction.response.send_message(
-                    "The only allowed formats are `jpg`, `png`, `gif` and `webp`!", ephemeral=True
-                )
-
-        await interaction.response.defer(thinking=True)
-        gif = await make_gif(self.bot, template, text, image, swap)
-        if gif is None:
-            raise Exception("No gif was returned.")
-
-        await interaction.followup.send(file=File(gif, f"{template}.gif"))
+    # @app_commands.command(name="create", description="Funny heart locket sealed away forever")
+    # @app_commands.describe(
+    #     template="For example heart-locket for tasky my beloved",
+    #     image="Will be prioritized to text if only one of them is available.",
+    #     text="Will be passed as second parameter, i.e. right side of heart locked.",
+    #     swap="Swap image and text so text comes first.",
+    # )
+    # @app_commands.choices(
+    #     template=[
+    #         Choice(name="Heart Locket", value="heart-locket"),
+    #         Choice(name="Flying Bear", value="flying-bear"),
+    #         Choice(name="Flag", value="flag"),
+    #         Choice(name="Billboard City", value="billboard-cityscape"),
+    #         Choice(name="Nesting Doll", value="nesting-doll"),
+    #         Choice(name="Circuit Board", value="circuit-board"),
+    #     ]
+    # )
+    # async def makesweet(
+    #     self,
+    #     interaction: Interaction[Bot],
+    #     template: str,
+    #     image: Attachment | None,
+    #     text: str | None,
+    #     swap: bool | None = False,
+    # ):
+    #     if not text and not image:
+    #         return await interaction.response.send_message(
+    #             f"{template} selected without either of `text` or `image`.", ephemeral=True
+    #         )
+    #
+    #     if image:
+    #         file_extension = urllib.parse.urlparse(image.url).path.split(".")[-1]
+    #         if file_extension not in ["jpeg", "jpg", "gif", "png", "webp"]:
+    #             return await interaction.response.send_message(
+    #                 "The only allowed formats are `jpg`, `png`, `gif` and `webp`!", ephemeral=True
+    #             )
+    #
+    #     await interaction.response.defer(thinking=True)
+    #     gif = await make_gif(self.bot, template, text, image, swap)
+    #     if gif is None:
+    #         raise Exception("No gif was returned.")
+    #
+    #     await interaction.followup.send(file=File(gif, f"{template}.gif"))
 
     @app_commands.checks.bot_has_permissions(use_external_emojis=True)
     @app_commands.command(name="statistics", description="Display statistics about the guild.")
@@ -196,7 +196,7 @@ class Fun(commands.Cog):
         plt.clf()
         ax, data, colors = (
             plt.subplot(),
-            statServer(interaction.guild.members),  # type: ignore
+            stat_server(interaction.guild.members),  # type: ignore
             ["#747f8d", "#f04747", "#faa81a", "#43b582"],
         )  # type: ignore
         ax.pie(
