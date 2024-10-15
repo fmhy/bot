@@ -31,3 +31,4 @@ This code is for FreeMediaBotYeah, a Discord bot made specifically for the FMHY 
 - [taskylizard](https://github.com/taskylizard) - De-spaghettifier
 - [Lix](https://github.com/daniel-lxs) - Morally Culpable
 - jsmsj - Bookmarks Cog
+- [cevoj35548](https://gitlab.com/cevoj) - Link Checker Code Snippets & Original URL Regex
