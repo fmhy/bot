@@ -45,13 +45,11 @@ class Events(commands.Cog):
     async def update_single_page(self):
         async with self.bot.session.get("https://api.fmhy.net/single-page") as response:
             self.single_page = await response.text()
-            self.bot.logger.info("Updated single page cache.")
+            self.bot.logger.info("Updated single page cache")
             self.last_single_page_update = time.time()
 
     @tasks.loop(minutes=10)
     async def update_disallowed_links(self):
-        self.bot.logger.info("Ready")
-
         for channel_id in disallowed_channel_ids:
             self.bot.logger.info(f"Checking {channel_id}")
             channel = self.bot.get_channel(channel_id)
@@ -156,6 +154,7 @@ class Events(commands.Cog):
                 name="🧵 Please keep discussions in here!",
                 reason="Auto thread created by FMHY Bot",
             )
+            return
 
         if message.author.bot:
             return
@@ -215,9 +214,10 @@ class Events(commands.Cog):
         emoji = payload.emoji
         chan_id = payload.channel_id
         msg_id = payload.message_id
+
         channel = await self.bot.fetch_channel(chan_id)
         msg: discord.Message = await channel.fetch_message(msg_id)
-        user = await self.bot.fetch_user(payload.user_id)
+
         if not isinstance(channel, discord.DMChannel):
             # Bookmark message
             if emoji == self.bookmark_emoji:
@@ -246,7 +246,7 @@ class Events(commands.Cog):
                         attach += f"{attachment.url}\n"
 
                 try:
-                    sent = await user.send(content=f"\n{attach}", embed=embed)
+                    sent = await payload.member.send(content=f"\n{attach}", embed=embed)
                     await sent.add_reaction("❌")
                 except discord.Forbidden:
                     # Nobody cares about this
@@ -290,7 +290,13 @@ class Events(commands.Cog):
                         await msg.reply(embed=non_duplicate_links_embed)
                 else:
                     await msg.reply("Unable to find original message")
-
+        else:
+            if (
+                emoji == self.del_emoji
+                and msg.author.id == self.bot.user.id
+                and payload.user_id != self.bot.user.id
+            ):
+                await msg.delete()
 
 async def setup(bot: Bot):
     await bot.add_cog(Events(bot))

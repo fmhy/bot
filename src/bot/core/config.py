@@ -33,7 +33,8 @@ MKSWT_KEY = _get("MKSWT_KEY")
 DB = os.environ.get("DB_URI")
 
 url_regex = re.compile(
-    r"(https?):\/\/(?:ww(?:w|\d+)\.)?((?:[\w_-]+(?:\.[\w_-]+)+)[\w.,@?^=%&:\/~+#-]*[\w@?^=%&~+-])"
+    r"(https?):\/\/(?:ww(?:w|\d+)\.)?((?:[\w_-]+(?:\.[\w_-]+)+)[\w.,@?^=%&:\/~+#-]*[\w@?^=%&~+-])",
+    re.IGNORECASE
 )
 
 channel_ids = [
