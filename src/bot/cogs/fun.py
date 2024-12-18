@@ -5,6 +5,7 @@ import random
 import urllib.parse
 from collections.abc import Sequence
 from io import BytesIO, StringIO
+from pathlib import Path
 from typing import Any
 
 import discord
@@ -20,7 +21,11 @@ from wordcloud import WordCloud
 from bot.core import Bot
 from bot.core.config import MKSWT_KEY
 
-data = json.load(open("data/drama.json"))
+PROJECT_ROOT = Path(__file__).parents[3]
+
+drama_file = PROJECT_ROOT / "data" / "drama.json"
+with open(drama_file, 'r') as f:
+    data = json.load(f)
 
 
 def fill_phrase(phrase: str, data: dict):

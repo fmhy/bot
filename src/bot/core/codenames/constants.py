@@ -1,7 +1,10 @@
 from pathlib import Path
-
 from discord import Color
 from PIL import ImageFont
+import os
+
+# Add this line after the imports
+PROJECT_ROOT = Path(__file__).parents[4]  # Go up 4 levels to reach the project root
 
 EMPTY = "\u2063"  # invisible separator
 
@@ -29,10 +32,15 @@ REACTION_NUMBERS = ("1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️
 
 
 font = ImageFont.truetype(
-    str(Path("data", "fonts", "RobotoCondensed-Bold.ttf")), 80, encoding="utf-8"
+    str(PROJECT_ROOT / "data" / "fonts" / "RobotoCondensed-Bold.ttf"), 
+    80, 
+    encoding="utf-8"
 )
-big_font = ImageFont.truetype(str(Path("data", "fonts", "Roboto-Bold.ttf")), 350, encoding="utf-8")
-
+big_font = ImageFont.truetype(
+    str(PROJECT_ROOT / "data" / "fonts" / "Roboto-Bold.ttf"), 
+    350, 
+    encoding="utf-8"
+)
 
 dictionaries = {
     "std": "Original English (400 words)",
@@ -47,24 +55,24 @@ dictionaries = {
 
 
 class Paths:
-    img_dir = Path("state", "images")
-    db = Path("state", "database.db")
+    img_dir = PROJECT_ROOT / "state" / "images"
+    db = PROJECT_ROOT / "state" / "database.db"
 
     @classmethod
     def cap_img(cls, game_uuid: str) -> Path:
-        return Path(cls.img_dir, f"{game_uuid}-spymaster.png")
+        return cls.img_dir / f"{game_uuid}-spymaster.png"
 
     @classmethod
     def cap_img_init(cls, game_uuid: str) -> Path:
-        return Path(cls.img_dir, f"{game_uuid}-spymaster-initial.png")
+        return cls.img_dir / f"{game_uuid}-spymaster-initial.png"
 
     @classmethod
     def pl_img(cls, game_uuid: str) -> Path:
-        return Path(cls.img_dir, f"{game_uuid}-player.png")
+        return cls.img_dir / f"{game_uuid}-player.png"
 
     @staticmethod
     def dictionary(name: str) -> Path:
-        return Path("data", "dictionaries", f"{name}.txt")
+        return PROJECT_ROOT / "data" / "dictionaries" / f"{name}.txt"
 
 
 class FieldSizing:
