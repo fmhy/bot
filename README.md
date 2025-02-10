@@ -1,5 +1,8 @@
 # fmhy/bot
 
+> [!NOTE]
+> This bot is no longer receiving new features and is now in maintenance mode. Please refrain from opening issues or pull requests. Pull Requests for drama generation additions will not be accepted.
+
 This code is for FreeMediaBotYeah, a Discord bot made specifically for the FMHY Discord server. It provides numerous utilities and other tools to help keep the server running like a well-oiled machine.
 
 **Note:** This source code is provided as-is for educational and development purposes only. You **shouldn't** self-host this. Support will not be provided if you choose to do so.
