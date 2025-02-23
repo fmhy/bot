@@ -27,7 +27,6 @@ prefix = "-"
 TOKEN = _get("TOKEN")
 GUILD_ID = _get("GUILD_ID")
 OWNERS = _get_int_list("OWNERS")
-RSS_CHANNELS = _get("RSS_CHANNEL_IDS")
 FEEDS = _get("RSS_FEED_URLS")
 MKSWT_KEY = _get("MKSWT_KEY")
 DB = os.environ.get("DB_URI")
@@ -42,7 +41,6 @@ channel_ids = [
     1085450217907814412,  # non-eng thread
     1000235624315498546,  # tested-links
     997292029056925808,  # nsfw-tested-links
-    1099381748011380909,  # unknown??
 ]
 
 disallowed_channel_ids = [
@@ -58,6 +56,5 @@ auto_thread_mappings = {
 
 managing_roles = [956006107564879880, 956006107577454603]
 
-news_forum = 1289918731811553283
-news_tag = 1289925916360704111
+news_forum = 1337078073719521322
 rss_feed_urls = FEEDS.split(",")

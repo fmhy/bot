@@ -25,8 +25,7 @@ class Events(commands.Cog):
         self.bookmark_emoji = discord.PartialEmoji(name="🔖")
         self.del_emoji = discord.PartialEmoji(name="❌")
         self.list_emoji = discord.PartialEmoji(name="📋")
-        self.last_single_page_update = 0
-        self.single_page = ""
+        self.single_page_cache = None
 
         self.all_disallowed_messages = set()
         self.last_fetched_messages = {}
@@ -43,17 +42,28 @@ class Events(commands.Cog):
 
     @tasks.loop(minutes=5)
     async def update_single_page(self):
-        async with self.bot.session.get("https://api.fmhy.net/single-page") as response:
-            self.single_page = await response.text()
-            self.bot.logger.info("Updated single page cache")
-            self.last_single_page_update = time.time()
+        headers = {}
+        if self.single_page_cache and self.single_page_cache.get('etag'):
+            headers['If-None-Match'] = self.single_page_cache['etag']
+
+        async with self.bot.session.get("https://api.fmhy.net/single-page", headers=headers) as response:
+            if response.status == 200:
+                self.single_page_cache = {
+                    'content': await response.text(),
+                    'etag': response.headers.get('ETag')
+                }
+                self.bot.logger.info("Updated single page cache")
+            elif response.status == 304:
+                self.bot.logger.info("Single page cache not modified")
+            else:
+                self.bot.logger.warning(f"Error fetching single page: {response.status}")
+                return
 
     @tasks.loop(minutes=10)
     async def update_disallowed_links(self):
         for channel_id in disallowed_channel_ids:
-            self.bot.logger.info(f"Checking {channel_id}")
             channel = self.bot.get_channel(channel_id)
-            self.bot.logger.info(f"Channel: {channel.name}")
+            self.bot.logger.info(f"Checking #{channel.name}")
             if channel:
                 messages = await self.fetch_new_messages(channel_id)
                 total_links_added = 0
@@ -65,11 +75,11 @@ class Events(commands.Cog):
                         )
                     )
                     for link in msg_links:
-                        self.all_disallowed_messages.add((link, message.jump_url))
+                        self.all_disallowed_messages.add((link, f"{channel_id}/{message.id}"))
                     total_links_added += len(msg_links)
 
                 if total_links_added > 0:
-                    self.bot.logger.info(f"Added {total_links_added} links from {channel_id}")
+                    self.bot.logger.info(f"Added {total_links_added} links from #{channel.name}")
 
     @update_disallowed_links.before_loop
     async def update_disallowed_links_before_loop(self):
@@ -81,45 +91,40 @@ class Events(commands.Cog):
 
         messages = []
         fetch_limit = 200
-        has_more_messages = True
 
-        while has_more_messages:
-            batch = []
-            async for msg in channel.history(
+        while True:
+            batch = [msg async for msg in channel.history(
                 limit=fetch_limit,
                 after=(
                     discord.Object(last_fetched_message_id) if last_fetched_message_id else None
                 ),
                 oldest_first=True,
-            ):
-                batch.append(msg)
+            )]
 
-            if batch:
-                messages.extend(batch)
-                last_fetched_message_id = batch[-1].id
-            else:
-                has_more_messages = False
+            if not batch:
+                break
 
-        self.last_fetched_messages[channel_id] = (
-            messages[-1].id if messages else last_fetched_message_id
-        )
+            messages.extend(batch)
+            last_fetched_message_id = batch[-1].id
+            fetch_limit = 1000
+
+        if messages:
+            self.last_fetched_messages[channel_id] = (
+                messages[-1].id if messages else last_fetched_message_id
+            )
 
         return messages
 
     async def get_duplicate_non_duplicate_links(self, message_links):
-        if time.time() - self.last_single_page_update >= 300:
-            await self.update_single_page()
+        if self.single_page_cache and self.single_page_cache.get('content'):
+            wiki_links = set(re.findall(url_regex, self.single_page_cache['content']))
 
-        wiki_links = set(
-            re.findall(
-                url_regex,
-                self.single_page,
-            )
-        )
-        duplicate_links = wiki_links.intersection(message_links)
-        non_duplicate_links = message_links - duplicate_links
+            duplicate_links = wiki_links.intersection(message_links)
+            non_duplicate_links = message_links - duplicate_links
 
-        return duplicate_links, non_duplicate_links
+            return duplicate_links, non_duplicate_links
+        else:
+            return set(), message_links
 
     async def filter_nonduplicates_embed(self, message):
         message_links = set(re.findall(url_regex, message.content))
@@ -190,7 +195,7 @@ class Events(commands.Cog):
                 for link in message_links:
                     duplicate_links_string = "\n".join(
                         [
-                            f"{'://'.join(disallowed_link)} | [Go to message]({jump_url})"
+                            f"{'://'.join(disallowed_link)} | [Go to message](https://discord.com/channels/{message.guild.id}/{jump_url})"
                             for disallowed_link, jump_url in self.all_disallowed_messages
                             if link == disallowed_link
                         ]
@@ -290,6 +295,8 @@ class Events(commands.Cog):
                         await msg.reply(embed=non_duplicate_links_embed)
                 else:
                     await msg.reply("Unable to find original message")
+
+                await msg.clear_reaction(self.list_emoji)
         else:
             if (
                 emoji == self.del_emoji

@@ -24,6 +24,7 @@ class Wiki(commands.Cog):
     @app_commands.describe(url_num="Number of URLs to display")
     async def list_links(self, interaction: Interaction, url_num: int):
         await interaction.response.defer()
+
         if url_num < 1:
             url_num = 1
         elif url_num > 25:
@@ -42,12 +43,12 @@ class Wiki(commands.Cog):
     @app_commands.command(name="search", description="Search for query in the wiki")
     async def searchwiki(self, interaction: Interaction, query: str):
         await interaction.response.defer()
+
         search = await execute(query)
         results = search[0]
         list_embed = Embed(title=f"Search Results for {query}", color=0x2B2D31)
-        list_embed.description = "\n".join(results)
+        list_embed.description = "\n".join(results) if results else "No results found"
         await interaction.followup.send(embed=list_embed, ephemeral=True)
-
 
 async def setup(bot: Bot):
     await bot.add_cog(Wiki(bot))

@@ -66,7 +66,11 @@ class Bot(commands.Bot):
 
     def __init__(self, session: aiohttp.ClientSession) -> None:
         self.start_time = datetime.now(UTC)
-        intents = discord.Intents.all()
+        intents = discord.Intents.none()
+        intents.guilds = True
+        intents.messages = True
+        intents.message_content = True
+        intents.reactions = True
 
         super().__init__(
             command_prefix=commands.when_mentioned_or(prefix),

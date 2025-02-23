@@ -1,8 +1,8 @@
-from discord.channel import ForumChannel
+from discord.channel import Thread
 from discord.ext import commands, tasks
 
 from bot.core import Bot
-from bot.core.config import news_forum, news_tag
+from bot.core.config import news_forum
 from bot.core.helpers import fetch_feeds
 
 
@@ -22,18 +22,11 @@ class RSSFeeds(commands.Cog):
     @tasks.loop(seconds=300)
     async def send_rss(self):
         for feed in fetch_feeds():
-            forum = self.bot.get_channel(news_forum)
-            if not isinstance(forum, ForumChannel):
+            thread = await self.bot.fetch_channel(news_forum)
+            if not isinstance(thread, Thread):
+                self.bot.logger.error("No news thread available")
                 return
-            tag = forum.get_tag(news_tag)
-            if not tag:
-                return
-            await forum.create_thread(
-                name=feed.title,
-                content=feed.link,
-                reason="Thread created by FMHY Bot",
-                applied_tags=[tag],
-            )
+            await thread.send(content=f"{feed.title} | {feed.link}")
 
 
 async def setup(bot: Bot):
