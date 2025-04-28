@@ -5,7 +5,7 @@ humanize
 aiohttp
 python-dotenv
 feedparser
-pymongo[srv]
+pymongo
 certifi
 pillow
 wordcloud

@@ -39,8 +39,8 @@ url_regex = re.compile(
 channel_ids = [
     997291314389467146,  # add-links
     1085450217907814412,  # non-eng thread
-    1000235624315498546,  # tested-links
-    997292029056925808,  # nsfw-tested-links
+    1250924744853819547,  # link-testing
+    997292029056925808,  # nsfw-add-links
 ]
 
 disallowed_channel_ids = [

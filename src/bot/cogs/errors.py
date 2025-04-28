@@ -18,8 +18,13 @@ class Errors(commands.Cog):
 
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
+        self.bot.on_error = self.on_error
         self.bot.on_command_error = self.on_command_error
         self.bot.tree.on_error = self.on_tree_error
+
+    async def on_error(self, event: str):
+        self.bot.logger.error(event)
+        traceback.print_exc()
 
     async def on_tree_error(self, interaction: Interaction[Bot], error: app.AppCommandError):
         if isinstance(error, app.CommandNotFound):

@@ -14,6 +14,7 @@ class RSSFeeds(commands.Cog):
 
     async def cog_load(self):
         self.send_rss.start()
+        return await super().cog_load()
 
     async def cog_unload(self) -> None:
         self.send_rss.stop()

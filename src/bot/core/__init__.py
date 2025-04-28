@@ -68,6 +68,7 @@ class Bot(commands.Bot):
         self.start_time = datetime.now(UTC)
         intents = discord.Intents.none()
         intents.guilds = True
+        intents.members = True
         intents.messages = True
         intents.message_content = True
         intents.reactions = True
@@ -83,6 +84,7 @@ class Bot(commands.Bot):
         formatter.install("discord", "INFO")
         formatter.install("bot", "INFO")
         self.logger = logging.getLogger("bot")
+        self.all_disallowed_messages = set()
 
     async def setup_hook(self):
         await Database.create()
