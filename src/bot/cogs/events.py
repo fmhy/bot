@@ -1,3 +1,4 @@
+import asyncio
 import re
 import time
 from datetime import datetime
@@ -31,7 +32,7 @@ class Events(commands.Cog):
         self.single_page_cache = None
 
         self.last_fetched_messages = {}
-        self.first_run = False
+        self.first_run = True
 
     async def cog_load(self) -> None:
         self.update_single_page.start()
@@ -52,7 +53,7 @@ class Events(commands.Cog):
         async with self.bot.session.get("https://api.fmhy.net/single-page", headers=headers) as response:
             if response.status == 200:
                 response_text = await response.text()
-                wiki_links = set(re.findall(url_regex, response_text))
+                wiki_links = await self.process_links(response_text)
                 self.single_page_cache = {
                     'wiki_links': wiki_links,
                     'ETag': response.headers.get('ETag', '')
@@ -63,37 +64,19 @@ class Events(commands.Cog):
 
     @tasks.loop(minutes=10)
     async def update_disallowed_links(self):
+        tasks = []
         for channel_id in disallowed_channel_ids:
-            if not (channel := self.bot.get_channel(channel_id)):
-                continue
+            if channel := self.bot.get_channel(channel_id):
+                tasks.append(self.process_channel(channel))
 
-            self.bot.logger.info(f"Processing #{channel.name}")
-            messages = await self.fetch_new_messages(channel)
-
-            links_added = 0
-            for message in messages:
-                if not message.content:
-                    continue
-                if any(reaction.emoji == self.emojis["raised_hand"] for reaction in message.reactions):
-                    continue
-
-                if matches := re.findall(url_regex, message.content):
-                    filtered = [
-                        (protocol, domain) for protocol, domain in matches
-                        if "/channels/" not in domain.lower()
-                        or "discord.com" not in domain.lower()
-                    ]
-
-                    links_added += len(filtered)
-                    self.bot.all_disallowed_messages.update((link, f"{channel_id}/{message.id}") for link in filtered)
-
-            if links_added > 0:
-                self.bot.logger.info(f"Added {links_added} links from #{channel.name}")
+        await asyncio.gather(*tasks)
 
         if self.first_run:
             self.bot.logger.info("Checking for messages potentially missed")
             for channel_id in channel_ids:
                 if not (channel := self.bot.get_channel(channel_id)):
+                    continue
+                if not isinstance(channel, discord.TextChannel):
                     continue
 
                 messages = await self.fetch_messages_without_bot_replies(channel)
@@ -101,9 +84,45 @@ class Events(commands.Cog):
                     await self.check_message_for_links(message)
             self.first_run = False
 
+    async def process_channel(self, channel):
+        messages = await self.fetch_new_messages(channel)
+
+        links_added = 0
+        for message in messages:
+            # Grab message content and, if exists, content of forwarded message.
+            content = message.content
+            if (
+                message.reference is not None
+                and message.reference.type is discord.MessageReferenceType.forward
+            ):
+                for snapshot in message.message_snapshots:
+                    content = content + snapshot.content
+            if not content:
+                continue
+
+            # Some context-important messages may contain links that should be ignored.
+            if any(reaction.emoji == self.emojis["raised_hand"] for reaction in message.reactions):
+                continue
+
+            if matches := await self.process_links(content):
+                filtered = [
+                    (protocol, domain) for protocol, domain in matches
+                    if "/channels/" not in domain
+                    or "discord.com" not in domain
+                ]
+
+                links_added += len(filtered)
+                self.bot.all_disallowed_messages.update((link, f"{channel.id}/{message.id}") for link in filtered)
+
+        if links_added > 0:
+            self.bot.logger.info(f"Added {links_added} links from #{channel.name}")
+
     @update_disallowed_links.before_loop
     async def update_disallowed_links_before_loop(self):
         await self.bot.wait_until_ready()
+
+    async def process_links(self, content):
+        return {(m.group(1), m.group(2).lower()) for m in url_regex.finditer(content)}
 
     async def fetch_new_messages(self, channel):
         last_fetched_message_id = self.last_fetched_messages.get(channel.id)
@@ -136,7 +155,7 @@ class Events(commands.Cog):
 
     async def fetch_messages_without_bot_replies(self, channel):
         messages = []
-        fetched_messages = [msg async for msg in channel.history(limit=100)]
+        fetched_messages = [msg async for msg in channel.history(limit=25)]
 
         messages_with_bot_replies = set(msg.reference.message_id for msg in fetched_messages if msg.reference and msg.author == self.bot.user)
 
@@ -145,52 +164,60 @@ class Events(commands.Cog):
         return messages
 
     async def check_message_for_links(self, message):
-        message_links = set(re.findall(url_regex, message.content))
-        if message_links:
-            (
-                duplicate_links,
-                non_duplicate_links,
-            ) = await self.get_duplicate_non_duplicate_links(message_links)
+        if not message.content:
+            return
+
+        if message_links := await self.process_links(message.content):
+            duplicate_links, non_duplicate_links = await self.get_duplicate_non_duplicate_links(message_links)
+
             embed = discord.Embed(
-                title=":warning: Warning", description="", color=discord.Color.orange()
+                title=":warning: Warning",
+                description="",
+                color=discord.Color.orange()
             )
 
-            # One link, duplicate
+            # Handle duplicate cases
             if len(message_links) == 1 and len(duplicate_links) == 1:
                 embed.description = "**This link is already in the wiki!**"
-            # All links, duplicates
             elif len(message_links) > 1 and len(message_links) == len(duplicate_links):
                 embed.description = "**All of these links are already in the wiki!**"
-            # Partial duplicates
             elif len(message_links) > 1 and len(duplicate_links) >= 1:
-                duplicate_links_string = "\n".join(
-                    [f"{protocol}://{link}" for protocol, link in duplicate_links]
-                )
-                embed.add_field(
-                    name="Duplicate Link", value=duplicate_links_string, inline=False
-                )
+                dup_string = "\n".join(f"{p}://{d}" for p, d in duplicate_links)
+                chunks = self.chunk_string(dup_string)
 
-                embed.set_footer(text="React with 📋 for a list of your non-duplicated links")
+                for i, chunk in enumerate(chunks):
+                    name = "Duplicate Link" if i == 0 else "Duplicate Link (cont.)"
+                    embed.add_field(name=name, value=chunk, inline=False)
+
+                if non_duplicate_links:
+                    embed.set_footer(text="React with 📋 for a list of your non-duplicated links")
 
             # Disallowed links
+            disallowed_entries = []
             for link in message_links:
-                duplicate_links_string = "\n".join(
-                    [
-                        f"{'://'.join(disallowed_link)} | [Go to message](https://discord.com/channels/{message.guild.id}/{jump_url})"
-                        for disallowed_link, jump_url in self.bot.all_disallowed_messages
-                        if link == disallowed_link
-                    ]
+                matches = {entry for entry in self.bot.all_disallowed_messages if entry[0] == link}
+
+                for match in matches:
+                    disallowed_entries.append((link, match[1]))
+
+            if disallowed_entries:
+                self.bot.logger.info(disallowed_entries)
+
+                disallowed_text = "\n".join(
+                    f"{p}://{d} | [Context](https://discord.com/channels/{message.guild.id}/{jump_ref})"
+                    for (p, d), jump_ref in disallowed_entries
                 )
-                if len(duplicate_links_string) > 0:
-                    embed.add_field(
-                        name="Previously Removed", value=duplicate_links_string, inline=False
-                    )
+                chunks = self.chunk_string(disallowed_text)
+
+                for i, chunk in enumerate(chunks):
+                    name = "🚫 Previously Removed Links" if i == 0 else "🚫 Previously Removed Links (cont.)"
+                    embed.add_field(name=name, value=chunk, inline=False)
 
             if len(embed.fields) > 0 or len(embed.description) > 0:
                 reply_message = await message.reply(embed=embed)
                 await reply_message.add_reaction("❌")
 
-                if len(embed.footer) > 0:
+                if non_duplicate_links and duplicate_links:
                     await reply_message.add_reaction("📋")
 
     async def get_duplicate_non_duplicate_links(self, message_links):
@@ -205,8 +232,7 @@ class Events(commands.Cog):
             return set(), message_links
 
     async def filter_nonduplicates_embed(self, message):
-        message_links = set(re.findall(url_regex, message.content))
-        if message_links:
+        if message_links := await self.process_links(message.content):
             (
                 duplicate_links,
                 non_duplicate_links,
@@ -225,6 +251,18 @@ class Events(commands.Cog):
             )
 
             return non_duplicate_links_embed
+
+    def chunk_string(self, input_str, max_length=1024):
+        chunks = []
+        while len(input_str) > max_length:
+            split_point = input_str.rfind('\n', 0, max_length)
+            if split_point == -1:
+                split_point = max_length  # No newline found, hard cut
+            chunks.append(input_str[:split_point])
+            input_str = input_str[split_point:].lstrip()
+        if input_str:
+            chunks.append(input_str)
+        return chunks
 
     @commands.Cog.listener()
     async def on_thread_create(self, thread: discord.Thread):
@@ -247,7 +285,13 @@ class Events(commands.Cog):
 
         if message.author.bot:
             return
-        if message.channel.id in channel_ids and not isinstance(message.channel, discord.ForumChannel):
+        if (
+            (
+                message.channel.id in channel_ids or 
+                (isinstance(message.channel, discord.Thread) and message.channel.parent_id in channel_ids)
+            )
+            and not isinstance(message.channel, discord.ForumChannel)
+        ):
             await self.check_message_for_links(message)
 
     @commands.Cog.listener()
@@ -259,6 +303,8 @@ class Events(commands.Cog):
 
         channel = await self.bot.fetch_channel(payload.channel_id)
         msg = await channel.fetch_message(payload.message_id)
+
+        referenced_msg = msg.reference.resolved if msg.reference else None
 
         # Send non-duplicate links as embed
         if (
@@ -311,10 +357,8 @@ class Events(commands.Cog):
             except discord.Forbidden:
                 # Nobody cares about this
                 pass
-            
-            return
 
-        referenced_msg = msg.reference.resolved if msg.reference else None
+            return
 
         # Delete message if user (is author of original message OR has roles that can manage messages)
         if (
@@ -326,10 +370,13 @@ class Events(commands.Cog):
                 managing_user = any(role.id in managing_roles for role in payload.member.roles)
                 is_author = msg.author.id == payload.user_id
 
-                if (managing_user or is_author) and not isinstance(referenced_msg, discord.DeletedReferencedMessage):
-                    await referenced_msg.delete()
+                if managing_user or is_author:
+                    await msg.delete()
 
-            await msg.delete()
+                    if not isinstance(referenced_msg, discord.DeletedReferencedMessage):
+                        await referenced_msg.delete()
+            else:
+                await msg.delete()
             return
 
         # Remove link from all_disallowed_messages if new raised hand reaction
@@ -338,9 +385,10 @@ class Events(commands.Cog):
             and msg.author.id != self.bot.user.id
         ):
             if not isinstance(channel, discord.DMChannel):
-                message_links = set(re.findall(url_regex, msg.content))
+                message_links = await self.process_links(msg.content)
                 for link in message_links:
                     self.bot.all_disallowed_messages.discard((link, f"{channel.id}/{msg.id}"))
+                    # fix this - doesn't know which channel link was originally posted in
             return
 
 async def setup(bot: Bot):
